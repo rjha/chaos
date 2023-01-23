@@ -1,0 +1,55 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+  </head>
+
+
+
+  <body>
+
+    <script type="module">
+
+    import plotter from '/js/plotter.js';
+   
+
+    plotter.setDebug(false);
+    plotter.setPixels(500, 500);
+    // set X,Y range 
+    plotter.setXRange(2.0, 4.0); 
+    plotter.setYRange(0, 1);
+    plotter.setBatchSize(1000);
+   
+    
+    var r = 0;
+    var x1 = 0.0;
+    var n = 0 ;
+
+    // step size 1/ 10^4 
+    for(r= 2.0; r <= 4.0; r = r + 0.0001) {
+        // start with a random point 
+        x1 = Math.random();
+        // let it settle to the attractor 
+        for(n = 0 ; n < 1000; n = n+1) {
+            x1 = r * x1 * (1-x1);
+        }
+
+        
+        for(n = 0 ; n <10; n++) {
+            x1 = r * x1 * (1-x1);
+            plotter.add(['DOT', {"x": r, "y": x1}]);
+        }   
+
+
+    }
+
+    // play animation 
+    plotter.draw();
+    
+    
+     
+    </script>
+  </body>
+</html>
