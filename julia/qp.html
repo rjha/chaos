@@ -38,7 +38,8 @@
         y_min: -2.0,
         y_max: 2.0,
         pixels: 100,
-        cz: new Complex(-0.354, 0.354),
+        cz: new Complex(0.355534, -0.337292),
+        
         
         setXRange: function(x_min, x_max) {
           this.x_min = x_min;
@@ -105,8 +106,7 @@
       julia.setXRange(-2.0, 2.0);
       julia.setYRange(-2.0, 2.0);
       julia.setPixels(pixels);
-      julia.setFixedParameter(-0.4, - 0.59);
-
+      
       plotter.setDebug(false);
       plotter.setPixels(500, 500);
       // set X,Y range 
