@@ -266,18 +266,18 @@
 
         createDot(config) {
             
-            let radius = config.radius || 1.0 ;
+            let side = config.radius || 1.0 ;
             let color = config.color || '#222222' ;
 
             let pixel = this.#mapPixel(this.#current);
-            let dot = two.makeCircle(pixel.x, pixel.y, radius);
+            let square = two.makeRectangle(pixel.x, pixel.y, side, side);
 
             // dot props
-            dot.fill = color;
-            dot.opacity = 1.0;
+            square.fill = color;
+            square.opacity = 1.0;
             // stroke will hide 
             // the color for small dots
-            dot.noStroke();
+            square.noStroke();
             
         }
 
