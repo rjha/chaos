@@ -10,7 +10,7 @@
     
     <script type="module">
 
-       // Julia set rendering 
+      // Julia set rendering 
       // 1. Divide complex plane with x [-2, 2] and y [-2, 2] into 
       // N x N points. Typical N = 500.
       // 
@@ -22,155 +22,44 @@
       // i.e. the number of iteration.
       // 
       // 4. Few interesting c values are, 
-      // (-0.835, -0.2321)
-      // (-0.791, -0.151)
-      // (0.355534, -0.337292)
-      // (0.75, 0.0)
-      // (0.40, 0.30)
+      // 
+      // a. (0.355534, -0.337292) peacock feather
+      // b. (-0.1, 0.65) 4 eyes 
+      // c. (-0.835, -0.2321) Dendrite 
+      // d. (-0.54, 0.54) fractal book cover dendrite 
+      // e. (0.355, 0.355) connected spirals 
+      // f. (0.40, 0.30) 4 flowers  
+      // g. (0.285, 0.01) floaters  
+      //  
+      // 
+      // 
+      // 
       // 
       
       import { plotter } from '/js/plotter.js';
       import { Complex, MutableComplex } from '/js/complex.js';
+      import { Julia } from '/js/julia.js';
+
+
+      // set plotter properties       
+      plotter.setDebug(false);
+      plotter.setBatchSize(1000);
+      plotter.setPixels(500, 500);
+
+      var julia = new Julia();
+      // set plotter 
+      julia.plotter = plotter; 
       
-
-
-      const EPSILON = 0.0001;
-      function fp_greater_than(A, B) {
-		    return (A - B > EPSILON) && (Math.abs(A - B) > EPSILON);
-	    }; 
-
-
-      
-      var julia = {
-
-        x_min: -2.0,
-        x_max: 2.0,
-        y_min: -2.0,
-        y_max: 2.0,
-        pixels: 100,
-        cz: new Complex(0.355534, -0.337292),
-        
-        
-        setXRange: function(x_min, x_max) {
-          this.x_min = x_min;
-          this.x_max = x_max;
-        },
-
-        setYRange: function(y_min, y_max) {
-          this.y_min = y_min;
-          this.y_max = y_max;
-        },
-
-        setPixels: function(pixels) {
-          this.pixels = pixels;
-        },
-
-        setFixedParameter: function(x, y) {
-          this.cz = new Complex(x, y);
-        },
-
-        mapPixel: function(xp, yp) {
-
-          let x_range = Math.abs(this.x_max - this.x_min);
-          let y_range = Math.abs(this.y_max - this.y_min);
-
-          let xc = this.x_min + ((xp / this.pixels) *  x_range);
-          let yc = this.y_min + ((yp / this.pixels) *  y_range);
-
-          return {
-            "x": xc,
-            "y": yc
-          }
-
-        },
-
-        transform: function(z0) {
-
-          let z = new MutableComplex(z0.x, z0.y);
-          let n = 0;
-
-          while(n < 1000) {
-            
-            z.square();
-            z.add(this.cz);
-
-            if(fp_greater_than(Complex.magnitude(z), 2.0)) {
-              break;
-            }
-
-            n = n + 1;
-
-          }
-          
-          return {
-            "n": n, 
-            "magnitude": Complex.magnitude(z)
-          }
-        }
-
-
-      }
-      
-
-      const pixels = 500;
       julia.setXRange(-2.0, 2.0);
       julia.setYRange(-2.0, 2.0);
-      julia.setPixels(pixels);
-      
-      plotter.setDebug(false);
-      plotter.setPixels(500, 500);
-      // set X,Y range 
-      plotter.setXRange(-2.0, 2.0); 
-      plotter.setYRange(-2.0, 2.0);
-      plotter.setBatchSize(1000);
-
-
-      var total = 0;
-      var xp = 0;
-      var yp = 0;
-
-      for(xp = 0; xp <= pixels; xp = xp + 1) {
-        for(yp = 0; yp <= pixels; yp = yp + 1) {
-
-          // translate x,y pixel into a number 
-          // in complex plane 
-          let z = julia.mapPixel(xp, yp);
-          let result = julia.transform(z);
-          let color = "black";
-
-          if(result.n < 10) {
-            color = "black";
-          } else if (result.n < 100) {
-            color = "blue";
-          } else if (result.n < 200) {
-            color = "yellow";
-          } else if (result.n < 300) {
-            color = "teal";
-          } else if (result.n < 1000) {
-            color = "aqua";
-          } else {
-            color = "orange";
-            total = total + 1;
-          }
-
-          plotter.add(['DOT', {
-              "x": z.x, 
-              "y": z.y,
-              "radius": 1.0,
-              "color": color 
-          }]);
-
-        }
-      }
-
-
-      console.log("total -> " + total);
-      // play animation 
-      plotter.draw();
-
-
+      julia.setGridSize(500);
+      julia.setFixedParameter(-0.1, 0.65);
 
      
+      // render 
+      julia.render();
+      
+
     </script>
   </body>
 </html>
