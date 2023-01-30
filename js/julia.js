@@ -13,7 +13,8 @@ class Julia {
     y_min = -2.0;
     y_max = 2.0;
     points = 500;
-
+    debug = false; 
+    
     pixels = [];
     shades = [];
     shades_index = [];
@@ -26,7 +27,7 @@ class Julia {
     
     // 4 eyes pattern 
     cz = new Complex(-0.1, 0.65); 
-
+    
     setXRange(x_min, x_max) {
       this.x_min = x_min;
       this.x_max = x_max;
@@ -48,8 +49,7 @@ class Julia {
       this.cz = new Complex(x, y);
     }
 
-
-
+    
     render() {
         
         // init shades 
@@ -152,7 +152,7 @@ class Julia {
         
         z.square();
         z.add(this.cz);
-
+        
         if(this.#fp_greater_than(Complex.magnitude(z), 2.0)) {
           break;
         }
@@ -176,8 +176,10 @@ class Julia {
             bucket_points = bucket_points + this.shades[i];
         }
 
-        // console.log(shades);
-        console.log("#bucket points -> %d", bucket_points);
+        if(this.debug) {
+            console.log("#bucket points -> %d", bucket_points);
+        }
+
         let slice = Math.ceil(bucket_points / 128);
 
         let buckets = [slice *120, 
@@ -185,14 +187,11 @@ class Julia {
             slice *2, 
             slice *2];
         
-        console.log("buckets -> %O", buckets);
-        let total = 0;
-        for(let i =0; i < buckets.length; i++) {
-            total = total + buckets[i];
+        if(this.debug) {
+            console.log("buckets -> %O", buckets);
         }
 
-        console.log("total in buckets -> " + total);
-
+        
         let loop_total = 0;
         let bucket_num = 0;
 
@@ -201,7 +200,10 @@ class Julia {
             loop_total = loop_total + this.shades[i]; 
             if( loop_total > buckets[bucket_num]) {
                 this.shades_index.push(i);
-                console.log("push -> n=%d, @total=%d", i, loop_total);
+                if(this.debug) {
+                    console.log("push -> n=%d, @total=%d", i, loop_total);
+                }
+
                 loop_total = 0;
                 bucket_num = bucket_num + 1;
             }
