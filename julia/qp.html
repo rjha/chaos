@@ -10,14 +10,24 @@
     
     <script type="module">
 
-      // julia set 
-      // sample points in a complex plane with x,y range [-2, 2]
-      // z -  a point in the complex plane 
-      // iterate z -> cz (1- z) 1000 times 
-      // different c gives different julia sets 
-      // use c = 0.8i 
-      // if |z| < 2 then point is stil in plane
-      // black for points in plane, white for the escaped ones 
+       // Julia set rendering 
+      // 1. Divide complex plane with x [-2, 2] and y [-2, 2] into 
+      // N x N points. Typical N = 500.
+      // 
+      // 2. For each point of the grid, run the 
+      // transformation z -> z^2 + c 1000 times with terminating 
+      // condition being |z| > 2 
+      // 
+      // 3. color code the points depending on how fast it escapes 
+      // i.e. the number of iteration.
+      // 
+      // 4. Few interesting c values are, 
+      // (-0.835, -0.2321)
+      // (-0.791, -0.151)
+      // (0.355534, -0.337292)
+      // (0.75, 0.0)
+      // (0.40, 0.30)
+      // 
       
       import { plotter } from '/js/plotter.js';
       import { Complex, MutableComplex } from '/js/complex.js';
