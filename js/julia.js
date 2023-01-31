@@ -4,7 +4,7 @@
 import { Complex, MutableComplex } from '/js/complex.js';
 
 const EPSILON = 0.0001;
-
+const MAX_ITER = 1000;
 
 class Julia {
 
@@ -18,14 +18,19 @@ class Julia {
     pixels = [];
     shades = [];
     shades_index = [];
+    
+    attractor_color = "orange";
+
     colors = [
         "black", 
         "blue", 
+        "red",
+        "navy",
         "aqua",
         "teal",
-        "yellow"];
-
-    
+        "yellow",
+        "green"]; 
+      
     // 4 eyes pattern 
     cz = new Complex(-0.1, 0.65); 
     
@@ -55,7 +60,7 @@ class Julia {
         
         // init shades 
         // for every possible value of n 
-        for(let i =0 ; i <= 1000; i++) {
+        for(let i =0 ; i <= MAX_ITER; i++) {
             this.shades[i] = 0;
         }
 
@@ -103,8 +108,8 @@ class Julia {
     // private methods 
     #getColor(n) {
 
-      if(n == 1000) {
-        return "red";
+      if(n == MAX_ITER) {
+        return this.attractor_color;
       }
 
       let colors_size = this.colors.length;
@@ -180,10 +185,13 @@ class Julia {
         let slice = Math.ceil(bucket_points / 64);
 
         let buckets = [slice *60, 
-            slice, 
-            slice, 
-            slice,
-            slice];
+            slice , 
+            slice * 0.5, 
+            slice * 0.5, 
+            slice * 0.5, 
+            slice * 0.5, 
+            slice * 0.5, 
+            slice * 0.5];
         
         if(this.debug) {
             console.log("buckets -> %O", buckets);
