@@ -14,14 +14,15 @@ class Julia {
     y_max = 2.0;
     points = 500;
     debug = false; 
-    
+
     pixels = [];
     shades = [];
     shades_index = [];
     colors = [
         "black", 
         "blue", 
-        "green",
+        "aqua",
+        "teal",
         "yellow"];
 
     
@@ -97,12 +98,8 @@ class Julia {
 
         }
 
-        this.plotter.draw();
-
-
     }
     
-
     // private methods 
     #getColor(n) {
 
@@ -180,12 +177,13 @@ class Julia {
             console.log("#bucket points -> %d", bucket_points);
         }
 
-        let slice = Math.ceil(bucket_points / 128);
+        let slice = Math.ceil(bucket_points / 64);
 
-        let buckets = [slice *120, 
-            slice * 4, 
-            slice *2, 
-            slice *2];
+        let buckets = [slice *60, 
+            slice, 
+            slice, 
+            slice,
+            slice];
         
         if(this.debug) {
             console.log("buckets -> %O", buckets);
