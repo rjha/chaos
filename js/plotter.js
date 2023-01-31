@@ -1,8 +1,8 @@
 
 
    
-    import Two from 'https://cdn.skypack.dev/two.js@latest';
     
+    import Two from '/js/two.module.js'
 
 
     class Plotter {
