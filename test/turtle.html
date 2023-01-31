@@ -18,8 +18,10 @@
         plotter.setPixels(500, 500);
         plotter.setXRange(-200, 200); 
         plotter.setYRange(-200, 200);
-        plotter.setPosition(0,0);
-        
+        plotter.showBox();
+
+        // mark origin 
+        plotter.setPosition(0, 0);
         plotter.add(['DOT', {
                     "x": 0, 
                     "y": 0,
@@ -27,12 +29,10 @@
                     "color": "red" 
         }]);
 
-        // send commands to the plotter 
+        // Add a triangle
         plotter.add(['FD', 150]); 
         plotter.add(['LT', 120]); 
         plotter.add(['FD', 150]); 
-
-        
         plotter.add(['LT', 120]);
         plotter.add(['FD', 150]); 
 
@@ -42,6 +42,8 @@
 
         // pen down
         plotter.add(['PD']);
+        // continue 
+        // make a rectangle 
         plotter.add(['LT', 120]);
         plotter.add(['FD', 180]);
         plotter.add(['RT', 90]);
@@ -50,13 +52,9 @@
         plotter.add(['FD', 180]);
         plotter.add(['RT', 90]);
         plotter.add(['FD', 30]);
-
-        // @bug: go back to origin 
-        // FD does not work correctly 
-        // after setPosition() call 
-        plotter.setPosition(0,0);
         
-        
+        // add a circle at origin 
+        plotter.setPosition(0, 0);
         for(let n =0; n  < 360; n++) {
           plotter.add(['FD', 1]);
           plotter.add(['RT', 1]);

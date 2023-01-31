@@ -48,7 +48,7 @@
       // set plotter properties      
       var plotter = new Plotter({"animation" : true}); 
       plotter.setDebug(false);
-      plotter.setBatchSize(1000);
+      plotter.setBatchSize(500);
       plotter.setPixels(500, 500);
 
       var julia = new Julia();
@@ -58,7 +58,7 @@
       julia.setXRange(-2.0, 2.0);
       julia.setYRange(-2.0, 2.0);
       julia.setGridSize(500);
-      julia.setFixedParameter(-0.1, 0.65);
+      julia.setFixedParameter(0.285, 0.01);
       julia.render();
 
       // play animation 

@@ -18,8 +18,10 @@
         plotter.setPixels(500, 500);
         plotter.setXRange(-6.28, 6.28); 
         plotter.setYRange(-6.28, 6.28);
+        plotter.setPixels(400, 400);
         plotter.setBatchSize(10);
-        plotter.createAxis();
+        plotter.showAxis();
+        plotter.showBox();
 
         for(let xp = -6.28; xp < 6.28; xp = xp + 0.001) {
 
