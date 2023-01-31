@@ -1,0 +1,54 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+  </head>
+  <body>
+
+    <script type="module">
+
+        import {Plotter} from '/js/plotter.js';
+
+        var plotter = new Plotter({"animation" : true});
+        plotter.setDebug(false);
+
+        // set X,Y range 
+        plotter.setPixels(500, 500);
+        plotter.setXRange(-6.28, 6.28); 
+        plotter.setYRange(-6.28, 6.28);
+        plotter.setBatchSize(10);
+        plotter.createAxis();
+
+        for(let xp = -6.28; xp < 6.28; xp = xp + 0.001) {
+
+          plotter.add(['DOT', {
+                    "x": xp, 
+                    "y": Math.sin(xp),
+                    "radius": 2.0,
+                    "color": "red"
+                }]);
+           
+        }
+
+        plotter.play();
+    
+      for(let xp = -6.28; xp < 6.28; xp = xp + 0.001) {
+
+          plotter.add(['DOT', {
+                    "x": xp, 
+                    "y": Math.cos(xp),
+                    "radius": 2.0,
+                    "color": "green"
+                }]);
+           
+        }
+
+        plotter.play();
+   
+
+     
+    </script>
+  </body>
+</html>
