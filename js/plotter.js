@@ -17,6 +17,7 @@
         #range = {} ;
         #previous = {};
         #batchSize = 1;
+        #penColor = "black";
 
         // two.js instance 
         #two ;
@@ -194,6 +195,16 @@
             this.#range.y_span = Math.abs(max - min);
         }
 
+        setPosition(x, y) {
+
+            this.#current.x = x;
+            this.#current.y = y;
+            if(this.debug) {
+                console.log("set position -> %s, %s", x, y);
+            }
+            
+        }
+
         setDebug(value) {
             this.#debug = value;
         }
@@ -241,6 +252,7 @@
             this.#theta = (this.#theta + angle + 360) % 360;
         }
 
+        
         penUp() {
             this.#visible = false;
         }
@@ -249,20 +261,15 @@
             this.#visible = true;
         }
 
-        setPosition(x, y) {
-
-            this.#current.x = x;
-            this.#current.y = y;
-            if(this.debug) {
-                console.log("set position -> %s, %s", x, y);
-            }
-            
+        setPenColor(color) {
+            this.#penColor = color; 
         }
 
+       
         createDot(config) {
             
             let side = config.radius || 1.0 ;
-            let color = config.color || '#222222' ;
+            let color = config.color || this.#penColor; ;
 
             let pixel = this.#mapPixel(this.#current);
             let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
@@ -327,38 +334,35 @@
 
         popCommands(size) {
 
-            let n = 0;
-            while(n < this.#batchSize) {
-
+            for(let n = 0; n < size; n  = n +1){
+           
                 if(this.#commands.length == 0) {
-                    console.log("pause PLOTTER...");
-                    this.#two.pause();
-                    return;
+                    return false;
                 }
 
                 let [command, args] = this.#commands.shift();
                 this.#executeCommand(command, args);
-                n = n + 1;
 
             }
+
+            return true;
             
         }
 
         update_frame(frameCount) {
-            this.plotter.popCommands();
+
+            let remaining = this.plotter.popCommands(this.plotter.batchSize);
+            if(!remaining) {
+                console.log("pause PLOTTER...");
+                this.plotter.pause();
+            }
         }
 
         draw() {
 
             // process all the commands 
-            // and then update 
-            let num_commands = this.#commands.length;
-            for(let i =0; i < num_commands; i++) {
-                let [command, args] = this.#commands.shift();
-                this.#executeCommand(command, args);
-            }
-           
-            // finally update the canvas
+            this.popCommands(this.#commands.length);
+            // update the canvas
             this.#two.update();
 
         }
@@ -372,15 +376,6 @@
         }
 
     }
-
-   
-    // bind a plotter variable to this.#two.js instance 
-    // the frame update method will access the 
-    // plotter bound to this.#two.js instance variable 
-   //  var plotter = new Plotter();
-    // this.#two.plotter = plotter; 
-    // this.#two.bind('update', plotter.update_frame);
-
     
     export {Plotter};
     export default Plotter;
