@@ -4,14 +4,6 @@
     import Two from 'https://cdn.skypack.dev/two.js@latest';
     
 
-    // init two.js canvas 
-    var two = new Two({
-        fullscreen: true
-      }).appendTo(document.body);
-
-
-
-    // plotter class  
 
     class Plotter {
 
@@ -25,12 +17,33 @@
         #range = {} ;
         #previous = {};
         #batchSize = 1;
+
+        // two.js instance 
+        #two ;
         
 
-        constructor() {
+        constructor(config) {
 
-            this.#x_pixels = two.width;
-            this.#y_pixels = two.height;
+            // setup an instance of two.js 
+            let container = config.container || document.body; 
+            let fullscreen = config.fullscreen || true ;
+            let animation = config.animation || true;
+
+            this.#two = new Two({
+                fullscreen: fullscreen
+            }).appendTo(container);
+
+            
+            if(animation) {
+                this.#two.bind('update', this.update_frame);
+            }
+            
+            // provide plotter reference to two.js 
+            this.#two.plotter = this;
+
+            // setup canvas size using two.js properties 
+            this.#x_pixels = this.#two.width;
+            this.#y_pixels = this.#two.height;
 
             this.#current = {
                 "x": 0,
@@ -43,12 +56,13 @@
             }
 
             this.#range = {
-                "x": { "min": 0, "max": two.width},
-                "y": { "min": 0, "max": two.height},
-                "x_span": two.width,
-                "y_span": two.height   
+                "x": { "min": 0, "max": this.#two.width},
+                "y": { "min": 0, "max": this.#two.height},
+                "x_span": this.#two.width,
+                "y_span": this.#two.height   
             }
 
+           
 
         }
 
@@ -61,7 +75,6 @@
             }
 
             // out of bounds 
-            // 
             if(point.x < this.#range.x.min
             || point.x > this.#range.x.max 
             || point.y < this.#range.y.min 
@@ -79,7 +92,7 @@
             let x_scaled = Math.abs(point.x - this.#range.x.min) / this.#range.x_span;
             let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
             
-            // shift axis 
+            // map to two.js canvas 
             let pixel = {
                 "x": x_scaled * this.#x_pixels ,
                 "y": this.#y_pixels - (y_scaled * this.#y_pixels)
@@ -93,7 +106,7 @@
             
         }
 
-        #processCommand(command, args) {
+        #executeCommand(command, args) {
             
             if(this.debug) {
                 console.log("execute command -> %s, args [%O]", command, args);
@@ -133,6 +146,8 @@
 
         }
 
+      
+
         // public properties 
 
         get range() {
@@ -152,6 +167,9 @@
             return this.#batchSize;
         }
 
+        get two() {
+            return this.#two;
+        }
 
         // public methods 
 
@@ -187,30 +205,7 @@
         add(command) {
             this.#commands.push(command);
         }
-        
-
-        run() {
-
-            
-            let n = 0;
-
-            while(n < this.#batchSize) {
-
-                if(this.#commands.length == 0) {
-                    console.log("pause PLOTTER...");
-                    two.pause();
-                    return;
-                }
-
-                let [command, args] = this.#commands.shift();
-                this.#processCommand(command, args);
-                n = n + 1;
-
-            }
-
-            
-            
-        }
+       
         
         forward(d) {
             
@@ -226,13 +221,13 @@
             let pixel1 = this.#mapPixel(this.#previous);
             let pixel2 = this.#mapPixel(this.#current);
 
-            let line = two.makeLine(pixel1.x, 
+            let line = this.#two.makeLine(pixel1.x, 
                     pixel1.y, 
                     pixel2.x, 
                     pixel2.y);
 
             line.visible = this.#visible;
-            two.add(line);
+            this.#two.add(line);
             
             
         }
@@ -270,7 +265,7 @@
             let color = config.color || '#222222' ;
 
             let pixel = this.#mapPixel(this.#current);
-            let square = two.makeRectangle(pixel.x, pixel.y, side, side);
+            let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
 
             // dot props
             square.fill = color;
@@ -307,40 +302,85 @@
             });
 
             
-            let x_axis = two.makeLine(x1_pixel.x, 
+            let x_axis = this.#two.makeLine(x1_pixel.x, 
                     x1_pixel.y, 
                     x2_pixel.x, 
                     x2_pixel.y);
 
-            let y_axis = two.makeLine(y1_pixel.x, 
+            let y_axis = this.#two.makeLine(y1_pixel.x, 
                 y1_pixel.y, 
                 y2_pixel.x, 
                 y2_pixel.y);
 
             
-            two.add(x_axis);
-            two.add(y_axis);
+            this.#two.add(x_axis);
+            this.#two.add(y_axis);
 
         }
        
+        
+        bind_animation_event(event_func) {
+            this.#two.bind('update', event_func);
+        }
+        
+       
+
+        popCommands(size) {
+
+            let n = 0;
+            while(n < this.#batchSize) {
+
+                if(this.#commands.length == 0) {
+                    console.log("pause PLOTTER...");
+                    this.#two.pause();
+                    return;
+                }
+
+                let [command, args] = this.#commands.shift();
+                this.#executeCommand(command, args);
+                n = n + 1;
+
+            }
+            
+        }
+
         update_frame(frameCount) {
-            this.plotter.run();
+            this.plotter.popCommands();
         }
 
         draw() {
-            two.play();
+
+            // process all the commands 
+            // and then update 
+            let num_commands = this.#commands.length;
+            for(let i =0; i < num_commands; i++) {
+                let [command, args] = this.#commands.shift();
+                this.#executeCommand(command, args);
+            }
+           
+            // finally update the canvas
+            this.#two.update();
+
+        }
+
+        pause() {
+            this.#two.pause();
+        }
+
+        play() {
+            this.#two.play();
         }
 
     }
 
    
-    // bind a plotter variable to two.js instance 
+    // bind a plotter variable to this.#two.js instance 
     // the frame update method will access the 
-    // plotter bound to two.js instance variable 
-    var plotter = new Plotter();
-    two.plotter = plotter; 
-    two.bind('update', plotter.update_frame);
+    // plotter bound to this.#two.js instance variable 
+   //  var plotter = new Plotter();
+    // this.#two.plotter = plotter; 
+    // this.#two.bind('update', plotter.update_frame);
 
     
-    export {plotter};
-    export default plotter;
+    export {Plotter};
+    export default Plotter;
