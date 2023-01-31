@@ -15,7 +15,6 @@
         #y_pixels = 0;
         #current = {};
         #range = {} ;
-        #previous = {};
         #batchSize = 1;
         #penColor = "black";
 
@@ -51,11 +50,6 @@
                 "y": 0
             };
 
-            this.#previous = {
-                "x": 0,
-                "y": 0
-            }
-
             this.#range = {
                 "x": { "min": 0, "max": this.#two.width},
                 "y": { "min": 0, "max": this.#two.height},
@@ -69,10 +63,53 @@
 
         // private methods 
 
+        #moveTo(x, y) {
+            
+            this.#current.x = x;
+            this.#current.y = y;
+            
+            if(this.debug) {
+                console.log("moved cursor to [%s, %s] ", x, y);
+            }
+            
+        }
+
+        #drawLine(point1, point2) {
+            
+            let pixel1 = this.#mapPixel(point1);
+            let pixel2 = this.#mapPixel(point2);
+
+            let line = this.#two.makeLine(pixel1.x, 
+                    pixel1.y, 
+                    pixel2.x, 
+                    pixel2.y);
+
+            line.visible = this.#visible;
+            this.#two.add(line);
+
+        }
+
+        #drawPixel(config) {
+            
+            let side = config.radius || 1.0 ;
+            let color = config.color || this.#penColor; ;
+
+            let pixel = this.#mapPixel(this.#current);
+            let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
+
+            // dot props
+            square.fill = color;
+            square.opacity = 1.0;
+            // stroke will hide 
+            // the color for small dots
+            square.noStroke();
+            
+        }
+
         #mapPixel(point) {
 
             if(this.debug) {
-                console.log("point [%s, %s]", point.x, point.y);
+                console.log("map point [%s, %s]", point.x, point.y);
             }
 
             // out of bounds 
@@ -93,14 +130,19 @@
             let x_scaled = Math.abs(point.x - this.#range.x.min) / this.#range.x_span;
             let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
             
-            // map to two.js canvas 
+            // map point to a pixel on canvas 
             let pixel = {
                 "x": x_scaled * this.#x_pixels ,
                 "y": this.#y_pixels - (y_scaled * this.#y_pixels)
             };
 
             if(this.debug) {
-                console.log("point translated to [%O]", pixel);
+                console.log("point[%s, %s] mapped to -> pixel [%s, %s]", 
+                    point.x, 
+                    point.y, 
+                    pixel.x, 
+                    pixel.y);
+
             }
            
             return pixel;
@@ -132,13 +174,17 @@
                     break;
                 
                 case 'DOT': 
-                    this.setPosition(args.x, args.y);
-                    this.createDot({
+                    this.#moveTo(args.x, args.y);
+                    this.#drawPixel({
                         "color": args.color,
                         "radius": args.radius 
                     });
 
                     break;
+                
+                case 'SETPOS':
+                    this.#moveTo(args.x, args.y);
+                    break; 
 
                 default:
                     console.error("unimplemented command -> %s", command);
@@ -148,7 +194,6 @@
         }
 
       
-
         // public properties 
 
         get range() {
@@ -195,16 +240,6 @@
             this.#range.y_span = Math.abs(max - min);
         }
 
-        setPosition(x, y) {
-
-            this.#current.x = x;
-            this.#current.y = y;
-            if(this.debug) {
-                console.log("set position -> %s, %s", x, y);
-            }
-            
-        }
-
         setDebug(value) {
             this.#debug = value;
         }
@@ -217,33 +252,27 @@
             this.#commands.push(command);
         }
        
-        
+        // turtle commands 
+
+        setPosition(x, y) {
+            this.add(['SETPOS', {"x": x, "y": y}]);
+        }
+
         forward(d) {
             
             // get projection of d 
             let radians = (Math.PI / 180.0) * this.#theta; 
-            this.#previous.x = this.#current.x;
-            this.#previous.y = this.#current.y;
-            
-            this.#current.x = this.#current.x + d * Math.cos(radians);
-            this.#current.y = this.#current.y + d * Math.sin(radians);
-            
-            // add line object to scene 
-            let pixel1 = this.#mapPixel(this.#previous);
-            let pixel2 = this.#mapPixel(this.#current);
+            let temp = {
+                "x": this.#current.x,
+                "y": this.#current.y
+            }
 
-            let line = this.#two.makeLine(pixel1.x, 
-                    pixel1.y, 
-                    pixel2.x, 
-                    pixel2.y);
-
-            line.visible = this.#visible;
-            this.#two.add(line);
-            
+            this.#current.x = temp.x + d * Math.cos(radians);
+            this.#current.y = temp.y + d * Math.sin(radians);
+            this.#drawLine(temp, this.#current);            
             
         }
         
-
         right(angle) {
             this.#theta = (this.#theta - angle + 360) % 360;
         }
@@ -265,66 +294,56 @@
             this.#penColor = color; 
         }
 
-       
-        createDot(config) {
-            
-            let side = config.radius || 1.0 ;
-            let color = config.color || this.#penColor; ;
+       // end -- turtle commands 
 
-            let pixel = this.#mapPixel(this.#current);
-            let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
-
-            // dot props
-            square.fill = color;
-            square.opacity = 1.0;
-            // stroke will hide 
-            // the color for small dots
-            square.noStroke();
-            
-        }
-
-        createAxis() {
+        showAxis() {
 
             let x_zero = this.#range.x.min + (this.#range.x_span / 2.0); 
             let y_zero = this.#range.y.min + (this.#range.y_span / 2.0); 
-   
-            let x1_pixel = this.#mapPixel({
-                "x": this.#range.x.min,
-                "y": y_zero 
-            });
-            
-            let x2_pixel = this.#mapPixel({
-                "x": this.#range.x.max,
-                "y": y_zero 
+
+            // x-axis 
+            this.#drawLine({
+                "x": this.#range.x.min, "y": y_zero},{
+                "x": this.#range.x.max, "y": y_zero 
             });
 
-            let y1_pixel =  this.#mapPixel({
-                "x": x_zero,
-                "y": this.#range.y.min 
-            });
-            
-            let y2_pixel =  this.#mapPixel({
-                "x": x_zero,
-                "y": this.#range.y.max 
+            // y-axis 
+            this.#drawLine({
+                "x": x_zero, "y": this.#range.y.min},{
+                "x": x_zero, "y": this.#range.y.max
             });
 
-            
-            let x_axis = this.#two.makeLine(x1_pixel.x, 
-                    x1_pixel.y, 
-                    x2_pixel.x, 
-                    x2_pixel.y);
-
-            let y_axis = this.#two.makeLine(y1_pixel.x, 
-                y1_pixel.y, 
-                y2_pixel.x, 
-                y2_pixel.y);
-
-            
-            this.#two.add(x_axis);
-            this.#two.add(y_axis);
 
         }
-       
+        
+        showBox() {
+
+            // top  
+            this.#drawLine({
+                "x": this.#range.x.min, "y": this.#range.y.max},{
+                "x": this.#range.x.max, "y": this.#range.y.max 
+            });
+
+            // bottom  
+            this.#drawLine({
+                "x": this.#range.x.min, "y": this.#range.y.min},{
+                "x": this.#range.x.max, "y": this.#range.y.min 
+            });
+
+            // right  
+            this.#drawLine({
+                "x": this.#range.x.max, "y": this.#range.y.min},{
+                "x": this.#range.x.max, "y": this.#range.y.max 
+            });
+
+             // left  
+             this.#drawLine({
+                "x": this.#range.x.min, "y": this.#range.y.min},{
+                "x": this.#range.x.min, "y": this.#range.y.max 
+            });
+
+        }
+
         
         bind_animation_event(event_func) {
             this.#two.bind('update', event_func);
