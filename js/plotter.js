@@ -226,7 +226,7 @@
             this.#previous.y = this.#current.y;
             
             this.#current.x = this.#current.x + d * Math.cos(radians);
-            this.#current.y = this.#current.x + d * Math.sin(radians);
+            this.#current.y = this.#current.y + d * Math.sin(radians);
             
             // add line object to scene 
             let pixel1 = this.#mapPixel(this.#previous);
