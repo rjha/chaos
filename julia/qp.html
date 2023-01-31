@@ -26,22 +26,27 @@
       // a. (0.355534, -0.337292) peacock feather
       // b. (-0.1, 0.65) 4 eyes 
       // c. (-0.835, -0.2321) Dendrite 
-      // d. (-0.54, 0.54) fractal book cover dendrite 
+      // d. (-0.54, 0.54) highway fractal 
+      //    The dendrite on Mandlebrot book cover
+      //  
       // e. (0.355, 0.355) connected spirals 
       // f. (0.40, 0.30) 4 flowers  
       // g. (0.285, 0.01) floaters  
-      //  
-      // 
-      // 
+      // h. (-0.70000, 0.27015) 
+      // i. (0.3755, -0.3) fireworks
+      // j. (-0.04, -0.684) 
+      // k. 
+      // @see https://commons.wikimedia.org/wiki/Category:Julia_sets
       // 
       // 
       
-      import { plotter } from '/js/plotter.js';
+      import { Plotter } from '/js/plotter.js';
       import { Complex, MutableComplex } from '/js/complex.js';
       import { Julia } from '/js/julia.js';
 
 
-      // set plotter properties       
+      // set plotter properties      
+      var plotter = new Plotter({"animation" : true}); 
       plotter.setDebug(false);
       plotter.setBatchSize(1000);
       plotter.setPixels(500, 500);
@@ -54,10 +59,11 @@
       julia.setYRange(-2.0, 2.0);
       julia.setGridSize(500);
       julia.setFixedParameter(-0.1, 0.65);
-
-     
-      // render 
       julia.render();
+
+      // play animation 
+      plotter.play();
+
       
 
     </script>
