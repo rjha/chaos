@@ -56,14 +56,25 @@ class MutableComplex {
     }
 
     square() {
-
-        let x1 = (this.x * this.x) - (this.y * this.y);
-        let y1 = (this.x * this.y) ;
         
-        this.x = x1;
-        this.y = 2.0 * y1;
+        let x_temp = (this.x * this.x) - (this.y * this.y);
+        this.y = (2.0 * this.x * this.y) ;
+        this.x = x_temp;
 
     }
+
+    power(N) {
+
+        let r = Math.hypot(this.x, this.y);
+        let n_theta = N * Math.atan2(this.y * 1.0, this.x);
+        let d = Math.pow(r, N);
+        
+        let x_temp = d * Math.cos(n_theta);
+        this.y = d * Math.sin(n_theta);
+        this.x = x_temp;
+
+    }
+
 
 };
 
