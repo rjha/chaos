@@ -16,8 +16,7 @@
         #current = {};
         #range = {} ;
         #batchSize = 1;
-        #penColor = "black";
-
+        
         // two.js instance 
         #two ;
         
@@ -68,13 +67,14 @@
             this.#current.x = x;
             this.#current.y = y;
             
-            if(this.debug) {
+            if(this.#debug) {
                 console.log("moved cursor to [%s, %s] ", x, y);
             }
             
         }
 
         #drawLine(point1, point2) {
+            
             
             let pixel1 = this.#mapPixel(point1);
             let pixel2 = this.#mapPixel(point2);
@@ -83,17 +83,25 @@
                     pixel1.y, 
                     pixel2.x, 
                     pixel2.y);
-
+                
             line.visible = this.#visible;
+            
+            // Using fill sets the color inside the object 
+            // and stroke sets the color of the line drawn 
+            // around the object
+            line.linewidth = 1; 
+            line.fill = "#222";
+            line.opacity = 1.0;  
+            line.noStroke();
             this.#two.add(line);
-
+            
         }
+
 
         #drawPixel(config) {
             
             let side = config.radius || 1.0 ;
-            let color = config.color || this.#penColor; ;
-
+            let color = config.color || "red";
             let pixel = this.#mapPixel(this.#current);
             let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
 
@@ -108,22 +116,18 @@
 
         #mapPixel(point) {
 
-            if(this.debug) {
+            if(this.#debug) {
                 console.log("map point [%s, %s]", point.x, point.y);
             }
 
             // out of bounds 
             if(point.x < this.#range.x.min
-            || point.x > this.#range.x.max 
-            || point.y < this.#range.y.min 
-            || point.y > this.#range.y.max) {
-
-                console.error("[%s, %s] is out of range: %O ", 
-                    point.x, 
-                    point.y, 
-                    this.range);
-
-                throw "out of bounds error";
+                || point.x > this.#range.x.max 
+                || point.y < this.#range.y.min 
+                || point.y > this.#range.y.max) {
+                
+                let message = `unable to map point [${point.x}, ${point.y}]`;
+                throw new Error(message);
 
             }
 
@@ -136,7 +140,8 @@
                 "y": this.#y_pixels - (y_scaled * this.#y_pixels)
             };
 
-            if(this.debug) {
+            if(this.#debug) {
+
                 console.log("point[%s, %s] mapped to -> pixel [%s, %s]", 
                     point.x, 
                     point.y, 
@@ -151,7 +156,7 @@
 
         #executeCommand(command, args) {
             
-            if(this.debug) {
+            if(this.#debug) {
                 console.log("execute command -> %s, args [%O]", command, args);
             }
             
@@ -261,15 +266,23 @@
         forward(d) {
             
             // get projection of d 
-            let radians = (Math.PI / 180.0) * this.#theta; 
+            let radians = (Math.PI / 180.0) * this.#theta;
             let temp = {
-                "x": this.#current.x,
-                "y": this.#current.y
+                "x": this.#current.x + d * Math.cos(radians),
+                "y":  this.#current.y + d * Math.sin(radians)
             }
 
-            this.#current.x = temp.x + d * Math.cos(radians);
-            this.#current.y = temp.y + d * Math.sin(radians);
-            this.#drawLine(temp, this.#current);            
+            try {
+
+                // assign new cursor position after 
+                // drawing the line
+                this.#drawLine(this.#current, temp); 
+                this.#current.x = temp.x; 
+                this.#current.y = temp.y;
+
+            } catch(error) {
+               // console.error(error);
+            }
             
         }
         
@@ -288,10 +301,6 @@
 
         penDown() {
             this.#visible = true;
-        }
-
-        setPenColor(color) {
-            this.#penColor = color; 
         }
 
        // end -- turtle commands 
