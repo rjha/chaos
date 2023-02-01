@@ -90,9 +90,9 @@
             // and stroke sets the color of the line drawn 
             // around the object
             line.linewidth = 1; 
-            line.fill = "#222";
+            line.fill = "black";
+            line.stroke = "black";
             line.opacity = 1.0;  
-            line.noStroke();
             this.#two.add(line);
             
         }
