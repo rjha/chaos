@@ -46,10 +46,12 @@
 
 
       // set plotter properties      
-      var plotter = new Plotter({"animation" : true}); 
+      var plotter = new Plotter({}); 
       plotter.setDebug(false);
       plotter.setBatchSize(500);
       plotter.setPixels(500, 500);
+      // default animation handler 
+      plotter.bind_animation_handler(plotter.update_handler);
 
       var julia = new Julia();
       // set plotter 

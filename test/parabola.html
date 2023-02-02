@@ -32,13 +32,14 @@
             plotter.add(['DOT', {
               "x": x, 
               "y": y,
-              "radius": 1.0,
+              "radius": 2.0,
               "color": "red"
             }]);
 
         }
 
         // play animation 
+        plotter.bind_animation_handler(plotter.update_handler);
         plotter.play();
     
      

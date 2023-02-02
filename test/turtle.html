@@ -59,7 +59,10 @@
           plotter.add(['FD', 1]);
           plotter.add(['RT', 1]);
         }
-
+        
+        // animate 
+        // 
+        plotter.bind_animation_handler(plotter.update_handler);
         plotter.play();
     
     

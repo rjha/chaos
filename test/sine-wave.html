@@ -22,7 +22,9 @@
         plotter.setBatchSize(10);
         plotter.showAxis();
         plotter.showBox();
+        plotter.bind_animation_handler(plotter.update_handler);
 
+        
         for(let xp = -6.28; xp < 6.28; xp = xp + 0.001) {
 
           plotter.add(['DOT', {

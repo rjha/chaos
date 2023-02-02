@@ -17,6 +17,7 @@
     var plotter = new Plotter({});
     plotter.setDebug(false);
     plotter.setPixels(500, 500);
+
     // set X,Y range 
     plotter.setXRange(2.0, 4.0); 
     plotter.setYRange(0, 1);
@@ -28,7 +29,7 @@
     var n = 0 ;
 
     // step size 1/ 10^4 
-    for(r= 3.0; r <= 4.0; r = r + 0.0001) {
+    for(r= 2.0; r <= 4.0; r = r + 0.0001) {
         // start with a random point 
         x1 = Math.random();
         // let it settle to the attractor 
@@ -45,7 +46,7 @@
 
     }
 
-    
+    plotter.bind_animation_handler(plotter.update_handler);
     plotter.play();
     
     
