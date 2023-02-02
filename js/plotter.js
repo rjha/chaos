@@ -26,17 +26,12 @@
             // setup an instance of two.js 
             let container = config.container || document.body; 
             let fullscreen = config.fullscreen || true ;
-            let animation = config.animation || true;
-
+            
             this.#two = new Two({
                 fullscreen: fullscreen
             }).appendTo(container);
 
-            
-            if(animation) {
-                this.#two.bind('update', this.update_frame);
-            }
-            
+         
             // provide plotter reference to two.js 
             this.#two.plotter = this;
 
@@ -101,7 +96,7 @@
         #drawPixel(config) {
             
             let side = config.radius || 1.0 ;
-            let color = config.color || "red";
+            let color = config.color || "black";
             let pixel = this.#mapPixel(this.#current);
             let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
 
@@ -154,7 +149,7 @@
             
         }
 
-        #executeCommand(command, args) {
+        executeCommand(command, args) {
             
             if(this.#debug) {
                 console.log("execute command -> %s, args [%O]", command, args);
@@ -354,13 +349,12 @@
         }
 
         
-        bind_animation_event(event_func) {
-            this.#two.bind('update', event_func);
+        bind_animation_handler(event_handler) {
+            this.#two.bind('update', event_handler);
         }
         
-       
-
-        popCommands(size) {
+        
+        #runCommandBatch(size) {
 
             for(let n = 0; n < size; n  = n +1){
            
@@ -369,7 +363,7 @@
                 }
 
                 let [command, args] = this.#commands.shift();
-                this.#executeCommand(command, args);
+                this.executeCommand(command, args);
 
             }
 
@@ -377,9 +371,9 @@
             
         }
 
-        update_frame(frameCount) {
+        update_handler(frameCount) {
 
-            let remaining = this.plotter.popCommands(this.plotter.batchSize);
+            let remaining = this.plotter.#runCommandBatch(this.plotter.batchSize);
             if(!remaining) {
                 console.log("pause PLOTTER...");
                 this.plotter.pause();
@@ -388,8 +382,8 @@
 
         draw() {
 
-            // process all the commands 
-            this.popCommands(this.#commands.length);
+            // process all commands 
+            this.#runCommandBatch(this.#commands.length);
             // update the canvas
             this.#two.update();
 
