@@ -135,6 +135,9 @@
                 "y": this.#y_pixels - (y_scaled * this.#y_pixels)
             };
 
+            // @todo integer pixels?
+            // pixel.x = Math.floor(pixel.x);
+            
             if(this.#debug) {
 
                 console.log("point[%s, %s] mapped to -> pixel [%s, %s]", 
@@ -174,12 +177,13 @@
                     break;
                 
                 case 'DOT': 
-                    this.#moveTo(args.x, args.y);
-                    this.#drawPixel({
+
+                    let config = {
                         "color": args.color,
                         "radius": args.radius 
-                    });
+                    }
 
+                    this.createDot(args.x, args.y, config);
                     break;
                 
                 case 'SETPOS':
@@ -252,11 +256,27 @@
             this.#commands.push(command);
         }
        
-        // turtle commands 
-
         setPosition(x, y) {
             this.add(['SETPOS', {"x": x, "y": y}]);
         }
+
+        createDot (x, y, config) {
+
+            this.#moveTo(x, y);
+
+            try {
+
+                this.#drawPixel({
+                    "color": config.color,
+                    "radius": config.radius 
+                });
+
+            } catch(error) {
+                // console.error(error);
+             }
+        }
+
+        
 
         forward(d) {
             
