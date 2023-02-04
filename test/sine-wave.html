@@ -11,7 +11,7 @@
 
         import {Plotter} from '/js/plotter.js';
 
-        var plotter = new Plotter({"animation" : true});
+        var plotter = new Plotter();
         plotter.setDebug(false);
 
         // set X,Y range 
@@ -30,21 +30,19 @@
           plotter.add(['DOT', {
                     "x": xp, 
                     "y": Math.sin(xp),
-                    "radius": 2.0,
+                    "radius": 1.0,
                     "color": "red"
                 }]);
            
         }
 
-        plotter.play();
+      plotter.play();
     
       for(let xp = -6.28; xp < 6.28; xp = xp + 0.001) {
 
           plotter.add(['DOT', {
                     "x": xp, 
-                    "y": Math.cos(xp),
-                    "radius": 2.0,
-                    "color": "green"
+                    "y": Math.cos(xp)
                 }]);
            
         }
