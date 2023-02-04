@@ -1,8 +1,6 @@
 
 
 
-import { Complex, MutableComplex } from '/js/complex.js';
-
 
 const MAX_ITER = 1000;
 
@@ -10,6 +8,7 @@ const MAX_ITER = 1000;
 class Mandlebrot {
 
 
+    #transformer; 
     #attractor_color = "red";
     #colors = [
         "black", 
@@ -46,6 +45,10 @@ class Mandlebrot {
       this.#range = range ;
     }
     
+    setTransformer(transformer_func) {
+      this.#transformer = transformer_func;
+    }
+
     render(xp_min, xp_max, yp_min, yp_max) {
       
       let pixels = [];
@@ -56,7 +59,7 @@ class Mandlebrot {
               // map the pixel into a number 
               // in complex plane 
               let z = this.#mapPixel(xp, yp);
-              let result = this.#transform(z);
+              let result = this.#transformer(z);
               let color = this.getColor(result.n);
 
               pixels.push({
@@ -117,31 +120,6 @@ class Mandlebrot {
       return {
         "x": xc,
         "y": yc
-      }
-
-    }
-
-    #transform(z0) {
-
-      let z = new MutableComplex(z0.x, z0.y);
-      let n = 0;
-
-      while(n < 1000) {
-        
-        z.power(4);
-        z.add(z0);
-        
-        if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
-          break;
-        }
-
-        n = n + 1;
-
-      }
-      
-      return {
-        "n": n, 
-        "magnitude": Complex.magnitude(z)
       }
 
     }

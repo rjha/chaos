@@ -13,53 +13,76 @@
       // Mandlebrot set rendering 
       // 
       // 
-      
-      import { Plotter } from '/js/plotter.js';
+
       import { Complex, MutableComplex } from '/js/complex.js';
+      import { Plotter } from '/js/plotter.js';
       import { Mandlebrot } from '/js/mandlebrot.js';
 
 
       const points = 500;
       var xp = 0;
-    
 
-      function process_grid(frameCount) {
+      function update_grid(frameCount) {
 
-        // x values in xp , xp + 10 
-        // all possible y values 
-        // 
+        // get pixels for [x y] range 
         let pixels = this.plotter.mandlebrot.render(xp,  xp + 10, 0, points);
 
         for(let i =0; i < pixels.length; i++) {
 
           let pixel = pixels[i];
-          this.plotter.executeCommand('DOT', {
+          this.plotter.add(['DOT', {
             "x": pixel.x, 
             "y": pixel.y,
             "radius": 1.0,
             "color":pixel.color 
-          });
+          }]);
 
         }
 
+        this.plotter.executeAll(); 
         // for next frame 
         xp = xp + 10; 
         
         if(xp >= points) {
           this.pause();
-          console.log("xp %s, yp %s", xp, yp);
+          console.log("stop@ xp= %d,", xp);
         }
 
       }
-      
+
+      function transformer(z0) {
+
+        let z = new MutableComplex(z0.x, z0.y);
+        let n = 0;
+
+        while(n < 1000) {
+          
+          z.power(4);
+          z.add(z0);
+          
+          if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
+            break;
+          }
+
+          n = n + 1;
+
+        }
+
+        return {
+          "n": n, 
+          "magnitude": Complex.magnitude(z)
+        }
+
+      }
+
       
       // set plotter properties      
       var range = {
-        "x": {"min": -0.8, "max": 0.6},
-        "y":  {"min": 0.4, "max": 0.6}
+        "x": {"min": -2.0, "max": 2.0},
+        "y": {"min": -2.0, "max": 2.0}
       }
 
-      var plotter = new Plotter({"animation" : false}); 
+      var plotter = new Plotter(); 
       plotter.setDebug(false);
 
       plotter.setXRange(range.x.min, range.x.max);
@@ -72,12 +95,13 @@
       mandlebrot.setGridPoints(points);
       mandlebrot.setColorIndex([10, 50, 100, 200, 300]);
       mandlebrot.setRange(range);
-
+      mandlebrot.setTransformer(transformer);
+      
       // bind variables
       plotter.mandlebrot = mandlebrot;
       
       // play animation 
-      plotter.bind_animation_handler(process_grid);
+      plotter.bind_animation_handler(update_grid);
       plotter.play();
 
       
