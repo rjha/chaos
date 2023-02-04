@@ -1,0 +1,144 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+
+    <script type="module">
+
+    // @see https://hypertextbook.com/chaos/bifurcation/
+    // Parameter values outside of the range [−2, ¼] 
+    // were not included as all of their orbits go 
+    // off to infinity. 
+    // for tent map 
+    // @see https://hypertextbook.com/chaos/universality/
+    // 
+    // 
+    
+    import {Complex} from '/js/complex.js';
+    import {Plotter} from '/js/plotter.js';
+
+
+    // global scope object 
+    var bifurcation = {
+
+      "x": 0, 
+      "r": 2.0,
+      "r_stop": 4.0,
+      "step": 0.0001,
+      "transformer": "tent",
+
+      "tent": function(x, r) {
+        return r * (1 - 2 * Math.abs(x - 0.5));
+      },
+      "quadratic": function(x, r) {
+        return r * x * (1-x);
+      },
+
+      "stop": function() {
+        if(Complex.isBiggerFloat(this.r, this.r_stop)) {
+          return true;
+        }
+
+        return false;
+
+      },
+
+      "move": function() {
+        this.r = this.r + this.step;
+      },
+
+      "getPixels": function() {
+
+        let pixels = [];
+        // start with a random point 
+        // let the orbit settle 
+        // add a dot on screen
+
+        let x = Math.random();
+        for(let n =0; n < 1000; n++) { 
+          x = this.transformer(x, this.r);
+        }
+
+        for(let j = 0 ; j < 10; j++) {
+            x = this.transformer(x, this.r);
+            pixels.push({"x": this.r, "y": x});
+        }
+
+        return pixels;
+
+      }
+
+    }
+   
+   
+
+
+    function update_handler(frameCount) {
+
+     
+      // plot 500 orbit points 
+      // on every frame update 
+      for(let n =0; n < 500; n++) {
+
+        let pixels = bifurcation.getPixels();
+
+        for(let i =0; i < pixels.length; i = i + 1) {
+          this.plotter.add(['DOT', {
+            "x": pixels[i].x, 
+            "y": pixels[i].y
+          }]);
+        }
+
+        bifurcation.move();
+        this.plotter.executeAll(); 
+        
+        if(bifurcation.stop()) {
+          this.pause();
+          console.log("@stop r -> %s", bifurcation.r);
+          break;
+        } 
+
+      }
+
+    }
+    
+    
+    bifurcation.transformer = function(x, r) {
+      return Math.sin(Math.PI * x ) + r; 
+    }
+
+    bifurcation.transformer = bifurcation.tent;
+    bifurcation.r = 0.5;
+    bifurcation.r_stop = 1.0;  
+    
+    /*
+    bifurcation.transformer = "tent";
+    bifurcation.r = 0.5;
+    bifurcation.r_stop = 1.0;
+    bifurcation.step = 0.0001; */ 
+
+    var plotter = new Plotter({});
+    plotter.setDebug(false);
+    plotter.setPixels(500, 500);
+
+    // set X,Y range 
+    plotter.setXRange(bifurcation.r, bifurcation.r_stop); 
+    plotter.setYRange(0, 1.0);
+    plotter.showBox();
+    
+    
+    // play animation
+    plotter.bind_animation_handler(update_handler);
+    plotter.play();
+    
+    
+    
+     
+    </script>
+  </body>
+</html>
