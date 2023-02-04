@@ -3,7 +3,7 @@
 
 import { Complex, MutableComplex } from '/js/complex.js';
 
-const EPSILON = 0.0001;
+
 const MAX_ITER = 1000;
 
 class Julia {
@@ -125,11 +125,6 @@ class Julia {
 
     }
 
-
-    #fp_greater_than(A, B) {
-        return (A - B > EPSILON) && (Math.abs(A - B) > EPSILON);
-    }
-
     #mapPixel(xp, yp) {
 
       let x_range = Math.abs(this.x_max - this.x_min);
@@ -155,7 +150,7 @@ class Julia {
         z.square();
         z.add(this.cz);
         
-        if(this.#fp_greater_than(Complex.magnitude(z), 2.0)) {
+        if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
           break;
         }
 

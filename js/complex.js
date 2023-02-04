@@ -1,6 +1,11 @@
 
 
+const EPLISON = 0.000001;
+
+
 class Complex {
+
+    
     #x = 0;
     #y = 0;
     constructor(x, y) {
@@ -12,6 +17,11 @@ class Complex {
         return Math.sqrt((c.x * c.x) + (c.y * c.y));
     }
 
+    // return true if A > B 
+    static isBiggerFloat(A, B) {
+        return (A - B > EPLISON) && (Math.abs(A - B) > EPLISON);
+    }
+    
     get x() {
         return this.#x ;
     }

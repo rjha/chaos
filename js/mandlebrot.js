@@ -3,7 +3,7 @@
 
 import { Complex, MutableComplex } from '/js/complex.js';
 
-const EPSILON = 0.0001;
+
 const MAX_ITER = 1000;
 
 
@@ -105,12 +105,6 @@ class Mandlebrot {
 
     }
 
-
-    // private methods 
-    #fp_greater_than(A, B) {
-        return (A - B > EPSILON) && (Math.abs(A - B) > EPSILON);
-    }
-
     #mapPixel(xp, yp) {
 
       let range = this.#range; 
@@ -137,7 +131,7 @@ class Mandlebrot {
         z.power(4);
         z.add(z0);
         
-        if(this.#fp_greater_than(Complex.magnitude(z), 2.0)) {
+        if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
           break;
         }
 
