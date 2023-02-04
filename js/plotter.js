@@ -5,6 +5,10 @@
     import Two from '/js/two.module.js'
 
 
+    const PLOTTER_NO_ERROR = 0;
+    const PLOTTER_NO_COMMAND_ERROR = 101;
+
+
     class Plotter {
 
         #theta = 0;
@@ -21,7 +25,7 @@
         #two ;
         
 
-        constructor(config) {
+        constructor(config ={}) {
 
             // setup an instance of two.js 
             let container = config.container || document.body; 
@@ -152,13 +156,26 @@
             
         }
 
-        executeCommand(command, args) {
+        
+        // pop next command from plotter queue 
+        // and run it  
+        // 
+        #popCommand() {
             
+            let error = PLOTTER_NO_ERROR;
+            // nothing in queue 
+            // the caller should have done the check 
+            // throw error!  
+            if(this.#commands.length == 0) {
+                return PLOTTER_NO_COMMAND_ERROR;
+            }
+
+            let [name, args] = this.#commands.shift();
             if(this.#debug) {
-                console.log("execute command -> %s, args [%O]", command, args);
+                console.log("execute command -> %s, args [%O]", name, args);
             }
             
-            switch(command) {
+            switch(name) {
 
                 case 'FD':
                     this.forward(args);
@@ -179,8 +196,8 @@
                 case 'DOT': 
 
                     let config = {
-                        "color": args.color,
-                        "radius": args.radius 
+                        "color": args.color || "black",
+                        "radius": args.radius || 1
                     }
 
                     this.createDot(args.x, args.y, config);
@@ -191,14 +208,45 @@
                     break; 
 
                 default:
-                    console.error("unimplemented command -> %s", command);
+                    console.error("unimplemented command -> %s", name);
 
             }
 
+            return error; 
+
         }
 
-      
-        // public properties 
+        // public methods 
+        // add commands to plotter queue 
+        add(command) {
+            this.#commands.push(command);
+        }
+
+       
+        // execute commands waiting in plotter 
+        // queue. 
+        // @size is batch size 
+        // default batch size is 1
+        execute(size=1) {
+
+            let error = PLOTTER_NO_ERROR;
+            
+            for(let i=0; i < size; i = i+1) {
+
+                error = this.#popCommand();
+                if(error) {
+                    break;
+                }
+            }
+
+            return error; 
+
+        }
+        
+        executeAll() {
+            return this.execute(this.queueSize);
+        }
+        
 
         get range() {
 
@@ -219,6 +267,10 @@
 
         get two() {
             return this.#two;
+        }
+
+        get queueSize() {
+            return this.#commands.length; 
         }
 
         // public methods 
@@ -252,15 +304,20 @@
             this.#batchSize = size;
         }
 
-        add(command) {
-            this.#commands.push(command);
-        }
-       
         setPosition(x, y) {
             this.add(['SETPOS', {"x": x, "y": y}]);
         }
 
         createDot (x, y, config) {
+
+
+            if(this.debug) {
+                console.log("create dot @[%s,%s], color:%s, radius:%s", 
+                    x, 
+                    y, 
+                    config.color, 
+                    config.radius);
+            }
 
             this.#moveTo(x, y);
 
@@ -272,6 +329,8 @@
                 });
 
             } catch(error) {
+                // @todo 
+                // indicate mapping errors 
                 // console.error(error);
              }
         }
@@ -296,6 +355,7 @@
                 this.#current.y = temp.y;
 
             } catch(error) {
+                // @todo indicate mapping errors 
                // console.error(error);
             }
             
@@ -318,8 +378,8 @@
             this.#visible = true;
         }
 
-       // end -- turtle commands 
-
+        // axes 
+        // 
         showAxis() {
 
             let x_zero = this.#range.x.min + (this.#range.x_span / 2.0); 
@@ -374,37 +434,26 @@
         }
         
         
-        #runCommandBatch(size) {
-
-            for(let n = 0; n < size; n  = n +1){
-           
-                if(this.#commands.length == 0) {
-                    return false;
-                }
-
-                let [command, args] = this.#commands.shift();
-                this.executeCommand(command, args);
-
-            }
-
-            return true;
-            
-        }
-
         update_handler(frameCount) {
 
-            let remaining = this.plotter.#runCommandBatch(this.plotter.batchSize);
-            if(!remaining) {
-                console.log("pause PLOTTER...");
-                this.plotter.pause();
+            let error = this.plotter.execute(this.plotter.batchSize);
+            if(error) {
+                console.log("plotter command execute error: %d", error);
+                if(error == PLOTTER_NO_COMMAND_ERROR) {
+                    console.log("pause PLOTTER...");
+                    this.plotter.pause();
+                }
             }
+
         }
 
+        
         draw() {
 
-            // process all commands 
-            this.#runCommandBatch(this.#commands.length);
-            // update the canvas
+            // pop and execute the 
+            // commands queue 
+            this.executeAll();
+            // update canvas
             this.#two.update();
 
         }
@@ -415,6 +464,10 @@
 
         play() {
             this.#two.play();
+        }
+
+        update() {
+            this.#two.update();
         }
 
     }
