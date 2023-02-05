@@ -446,18 +446,7 @@
             }
 
         }
-
         
-        draw() {
-
-            // pop and execute the 
-            // commands queue 
-            this.executeAll();
-            // update canvas
-            this.#two.update();
-
-        }
-
         pause() {
             this.#two.pause();
         }
