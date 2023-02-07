@@ -1,0 +1,169 @@
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title> mandlebrot demo </title>
+
+  </head>
+
+  <body>
+    
+    <canvas id='particles'></canvas>
+
+    <script type="module">
+
+      // Mandlebrot set rendering 
+      // @see https://stackoverflow.com/questions/4899799/whats-the-best-way-to-set-a-single-pixel-in-an-html5-canvas
+      // to draw sinle pixel on canvas 
+      // 
+      import { Complex, MutableComplex } from '/js/complex.js';
+      import { Mandlebrot } from '/js/mandlebrot.js';
+
+
+      var canvas_width = window.innerWidth;
+	    var canvas_height = window.innerHeight;
+      
+      var canvas;
+      var ctx;
+      var intervalId;
+
+      // frame interval in milli seconds 
+      var frameInterval = 30;
+      var particles = [];
+      var colors = ['red', 'orange', 'blue', 'aqua', "green", "purple", "black"];
+
+      const gridSize = 600;
+      var totalPoints = gridSize * gridSize;
+      var numPoints = 0;
+
+      var range = {
+        "x": {"min": -2.0, "max": 2.0},
+        "y": {"min": -2.0, "max": 2.0}
+      }
+
+      var xp = 0;
+
+      // point transformer 
+      function transformer(z0) {
+
+        let z = new MutableComplex(z0.x, z0.y);
+        let n = 0;
+
+        while(n < 1000) {
+          
+          z.power(2);
+          z.add(mandlebrot.zc);
+          
+          if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
+            break;
+          }
+
+          n = n + 1;
+
+        }
+
+        return {
+          "n": n, 
+          "magnitude": Complex.magnitude(z)
+        }
+
+      }
+
+
+      var drawParticle = function(x, y, size, color, opacity) {
+
+        /*
+        ctx.beginPath();
+        ctx.globalAlpha = opacity;
+        ctx.arc(x, y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.stroke(); */ 
+
+        ctx.fillRect(x, y, size, size);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // ctx.strokeStyle = color;
+        // ctx.stroke();
+
+      }
+
+
+      function update(mandlebrot) {
+
+        // paint the grid for xp value 
+        let pixels = mandlebrot.getPixels(xp, gridSize);
+        // console.log("xp = %d, pixels[%d]", xp, pixels.length);
+        // console.log(pixels);
+
+        for(let i= 0; i < pixels.length; i++) {
+
+          // let color_index = Math.floor(Math.random() * colors.length);
+          // let x = Math.floor(Math.random() * 200) * 10;
+          // let y = Math.floor(Math.random() * 80) * 10;
+
+          let size = 1;
+          let opacity = 1;
+          let y = pixels[i].y;
+          let color = pixels[i].color; 
+
+          drawParticle(xp, y, size, color, opacity);
+          numPoints++;
+          particles.push([xp, y, color, opacity, size]);
+
+        
+
+        }
+
+        // if (numPoints >= 1) {
+        if (numPoints >= totalPoints) {
+          console.log("stop animation @ %d ...", numPoints);
+          // stop the animation 
+            clearInterval(intervalId);
+            // intervalId = setInterval(clean, speed);
+        }
+
+        // set for next frame
+        xp = xp + 1;
+
+      }
+
+      
+      var mandlebrot = new Mandlebrot();
+      mandlebrot.setRange(range);
+      mandlebrot.setGridSize(gridSize);
+      mandlebrot.setColorIndex([10, 50, 100, 200, 300]);
+      mandlebrot.setTransformer(transformer);
+      mandlebrot.zc = new Complex(0.285, 0.01);
+
+      mandlebrot.start = function() {
+
+        var body = document.querySelector('body');
+        //  body.style.background = '#2C2C44';
+
+        canvas = document.getElementById('particles'),
+        ctx = canvas.getContext('2d');
+        body.style.margin = '0px';
+        canvas.style.margin = '0px';
+        canvas.style.padding = '0px';
+
+        canvas.width = canvas_width;
+        canvas.height = canvas_height;
+        intervalId = setInterval(update, frameInterval, this);
+
+
+    }
+    
+
+    mandlebrot.start();
+
+    </script>
+
+
+
+  </body>
+</html>
