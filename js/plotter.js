@@ -75,8 +75,8 @@
         #drawLine(point1, point2) {
             
             
-            let pixel1 = this.#mapPixel(point1);
-            let pixel2 = this.#mapPixel(point2);
+            let pixel1 = this.mapPixel(point1);
+            let pixel2 = this.mapPixel(point2);
 
             let line = this.#two.makeLine(pixel1.x, 
                     pixel1.y, 
@@ -101,7 +101,7 @@
             
             let side = config.radius || 1.0 ;
             let color = config.color || "black";
-            let pixel = this.#mapPixel(this.#current);
+            let pixel = this.mapPixel(this.#current);
             let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
 
             // dot props
@@ -113,7 +113,7 @@
             
         }
 
-        #mapPixel(point) {
+        mapPixel(point) {
 
             if(this.#debug) {
                 console.log("map point [%s, %s]", point.x, point.y);
