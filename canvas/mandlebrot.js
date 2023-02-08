@@ -1,6 +1,8 @@
 
 
 
+import { Plotter } from '/js/plotter.js';
+
 
 const MAX_ITER = 1000;
 
@@ -8,6 +10,7 @@ const MAX_ITER = 1000;
 class Mandlebrot {
 
 
+    #plotter; 
     #transformer; 
     #attractor_color = "red";
     #colors = [
@@ -21,16 +24,25 @@ class Mandlebrot {
         "navy"];
     
     #colorIndex = [10, 50, 100];
-    #num_points = 500; 
+    #grid_size = 500; 
+
     #range = {
       "x": {"min" : -2.0, "max": 2.0},
       "y": {"min": -2.0, "max": 2.0}
     }
     
-    
+    constructor() {
+      this.#plotter = new Plotter({});
+      this.#plotter.setXRange(this.#range.x.min, this.#range.x.max);
+      this.#plotter.setYRange(this.#range.y.min, this.#range.y.max);
+      this.#plotter.setPixels(this.#grid_size, this.#grid_size);
+
+    }
+
     // public methods 
-    setGridPoints(points) {
-      this.#num_points = points;
+    setGridSize(points) {
+      this.#grid_size = points;
+      this.#plotter.setPixels(points, points);
     }
 
     setColors(colors) {
@@ -41,35 +53,38 @@ class Mandlebrot {
       this.#colorIndex = colorIndex;
     }
 
+    
     setRange(range) {
-      this.#range = range ;
+      this.#range = range;
+      this.#plotter.setXRange(this.#range.x.min, this.#range.x.max);
+      this.#plotter.setYRange(this.#range.y.min, this.#range.y.max);
+
     }
     
     setTransformer(transformer_func) {
       this.#transformer = transformer_func;
     }
 
-    render(xp_min, xp_max, yp_min, yp_max) {
+    getPixels(xp) {
       
       let pixels = [];
-      
-      for(let xp = xp_min; xp < xp_max; xp = xp + 1) {
-          for(let yp = yp_min; yp < yp_max; yp = yp + 1) {
+      for(let yp = 0; yp < this.#grid_size; yp = yp + 1) {
 
-              // map the pixel into a number 
-              // in complex plane 
-              let z = this.#mapPixel(xp, yp);
-              let result = this.#transformer(z);
-              let color = this.getColor(result.n);
+        // map the pixel into a number 
+        // in complex plane 
+        let z = this.#mapPixel(xp, yp);
+        let result = this.#transformer(z);
+        let color = this.getColor(result.n);
 
-              pixels.push({
-                  "x": z.x,
-                  "y": z.y,
-                  "color": color
-              });
+        // map to actual x,y 
+        let point = this.#plotter.mapPixel(z);
+
+        pixels.push({
+            "x": point.x,
+            "y": point.y,
+            "color": color
+        });
           
-        }
-
       }
 
       return pixels; 
@@ -114,8 +129,8 @@ class Mandlebrot {
       let x_range = Math.abs(range.x.max - range.x.min);
       let y_range = Math.abs(range.y.max - range.y.min);
 
-      let xc = range.x.min + ((xp / this.#num_points) *  x_range);
-      let yc = range.y.min + ((yp / this.#num_points) *  y_range);
+      let xc = range.x.min + ((xp / this.#grid_size) *  x_range);
+      let yc = range.y.min + ((yp / this.#grid_size) *  y_range);
 
       return {
         "x": xc,

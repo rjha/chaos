@@ -6,12 +6,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title> mandlebrot demo </title>
+      <style>
+
+        #particles {
+          width:800px; 
+          height:800px;
+        }
+
+      </style>
 
   </head>
 
   <body>
     
-    <canvas id='particles'></canvas>
+    <canvas id="particles"></canvas>
 
     <script type="module">
 
@@ -20,28 +28,25 @@
       // to draw sinle pixel on canvas 
       // 
       import { Complex, MutableComplex } from '/js/complex.js';
-      import { Mandlebrot } from '/js/mandlebrot.js';
+      import { Mandlebrot } from '/canvas/mandlebrot.js';
 
-
-      var canvas_width = window.innerWidth;
-	    var canvas_height = window.innerHeight;
       
       var canvas;
       var ctx;
       var intervalId;
 
       // frame interval in milli seconds 
-      var frameInterval = 30;
-      var particles = [];
-      var colors = ['red', 'orange', 'blue', 'aqua', "green", "purple", "black"];
+      var frameInterval = 10;
+      const gridSize = 2400;
+      var canvas_width = gridSize;
+      var canvas_height = gridSize;
 
-      const gridSize = 600;
       var totalPoints = gridSize * gridSize;
       var numPoints = 0;
 
       var range = {
-        "x": {"min": -2.0, "max": 2.0},
-        "y": {"min": -2.0, "max": 2.0}
+        "x": {"min": -1.5, "max": 1.5},
+        "y": {"min": -1.5, "max": 1.5}
       }
 
       var xp = 0;
@@ -55,7 +60,7 @@
         while(n < 1000) {
           
           z.power(2);
-          z.add(mandlebrot.zc);
+          z.add(mandlebrot.cz);
           
           if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
             break;
@@ -75,20 +80,9 @@
 
       var drawParticle = function(x, y, size, color, opacity) {
 
-        /*
-        ctx.beginPath();
-        ctx.globalAlpha = opacity;
-        ctx.arc(x, y, size, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.strokeStyle = color;
-        ctx.stroke(); */ 
-
         ctx.fillRect(x, y, size, size);
         ctx.fillStyle = color;
         ctx.fill();
-        // ctx.strokeStyle = color;
-        // ctx.stroke();
 
       }
 
@@ -113,18 +107,15 @@
 
           drawParticle(xp, y, size, color, opacity);
           numPoints++;
-          particles.push([xp, y, color, opacity, size]);
-
-        
+          
 
         }
 
-        // if (numPoints >= 1) {
         if (numPoints >= totalPoints) {
           console.log("stop animation @ %d ...", numPoints);
-          // stop the animation 
+            // stop the animation 
             clearInterval(intervalId);
-            // intervalId = setInterval(clean, speed);
+            
         }
 
         // set for next frame
@@ -136,21 +127,18 @@
       var mandlebrot = new Mandlebrot();
       mandlebrot.setRange(range);
       mandlebrot.setGridSize(gridSize);
-      mandlebrot.setColorIndex([10, 50, 100, 200, 300]);
+      mandlebrot.setColorIndex([50, 100, 150, 250, 400]);
       mandlebrot.setTransformer(transformer);
-      mandlebrot.zc = new Complex(0.285, 0.01);
+      mandlebrot.cz = new Complex(-0.1, 0.65);
 
       mandlebrot.start = function() {
 
         var body = document.querySelector('body');
-        //  body.style.background = '#2C2C44';
-
         canvas = document.getElementById('particles'),
         ctx = canvas.getContext('2d');
-        body.style.margin = '0px';
+        // body.style.margin = '0px';
         canvas.style.margin = '0px';
         canvas.style.padding = '0px';
-
         canvas.width = canvas_width;
         canvas.height = canvas_height;
         intervalId = setInterval(update, frameInterval, this);
@@ -158,7 +146,8 @@
 
     }
     
-
+    console.log(canvas_width);
+    console.log(canvas_height);
     mandlebrot.start();
 
     </script>
