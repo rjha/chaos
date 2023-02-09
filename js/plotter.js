@@ -4,11 +4,10 @@
     
     import Two from '/js/two.module.js'
 
-
     const PLOTTER_NO_ERROR = 0;
     const PLOTTER_NO_COMMAND_ERROR = 101;
-
-
+    
+    
     class Plotter {
 
         #theta = 0;
@@ -22,8 +21,8 @@
         #batchSize = 1;
         
         // two.js instance 
-        #two ;
-        
+        #two;
+       
 
         constructor(config ={}) {
 
@@ -35,7 +34,7 @@
                 fullscreen: fullscreen
             }).appendTo(container);
 
-         
+            
             // provide plotter reference to two.js 
             this.#two.plotter = this;
 
@@ -54,8 +53,6 @@
                 "x_span": this.#two.width,
                 "y_span": this.#two.height   
             }
-
-           
 
         }
 
@@ -116,16 +113,18 @@
         mapPixel(point) {
 
             if(this.#debug) {
-                console.log("map point [%s, %s]", point.x, point.y);
+                console.log("mapPixel() point [%s, %s]", point.x, point.y);
             }
 
-            // out of bounds 
+            // point should be inside the 
+            //  range of allowed values 
+            // in the z-plane 
             if(point.x < this.#range.x.min
                 || point.x > this.#range.x.max 
                 || point.y < this.#range.y.min 
                 || point.y > this.#range.y.max) {
                 
-                let message = `unable to map point [${point.x}, ${point.y}]`;
+                let message = `mapPixel(): [${point.x}, ${point.y}] out of range `;
                 throw new Error(message);
 
             }
@@ -133,11 +132,24 @@
             let x_scaled = Math.abs(point.x - this.#range.x.min) / this.#range.x_span;
             let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
             
-            // map point to a pixel on canvas 
+            if(isNaN(x_scaled) || isNaN(y_scaled)) {
+                let message = `mapPixel(): [scaled value is NaN [${x_scaled}, ${y_scaled}]`;
+                throw new Error(message);
+            }
+
+            // adjust for canvas co-ordinates
             let pixel = {
                 "x": x_scaled * this.#x_pixels ,
                 "y": this.#y_pixels - (y_scaled * this.#y_pixels)
             };
+
+            // mapped pixel should be in bounds 
+            if(pixel.x > this.#x_pixels 
+                || pixel.y > this.#y_pixels) {
+
+                let message = `mapPixel(): pixel [${point.x}, ${point.y}] out of canvas `;
+                throw new Error(message);
+            }
 
             // @todo integer pixels?
             // pixel.x = Math.floor(pixel.x);
@@ -159,7 +171,6 @@
         
         // pop next command from plotter queue 
         // and run it  
-        // 
         #popCommand() {
             
             let error = PLOTTER_NO_ERROR;
@@ -174,6 +185,7 @@
             if(this.#debug) {
                 console.log("execute command -> %s, args [%O]", name, args);
             }
+            
             
             switch(name) {
 
@@ -194,13 +206,7 @@
                     break;
                 
                 case 'DOT': 
-
-                    let config = {
-                        "color": args.color || "black",
-                        "radius": args.radius || 1
-                    }
-
-                    this.createDot(args.x, args.y, config);
+                    this.createDot(args.x, args.y, args.radius, args.color);
                     break;
                 
                 case 'SETPOS':
@@ -276,13 +282,30 @@
         // public methods 
 
         setPixels(xp, yp) {
-            // @check 
+
+            if(arguments.length < 2) {
+                throw new Error("setPixels() requires two arguments");
+            }
+
+            if (isNaN(xp) || isNaN(yp)) {
+                throw new Error("setPixels() arguments must be numbers");
+            }
+
             this.#x_pixels = xp;
             this.#y_pixels = yp;
+
         }
 
         setXRange(min, max) {
-            // @todo check 
+
+            if(arguments.length < 2) {
+                throw new Error("setXRange() requires two arguments");
+            }
+
+            if (isNaN(min) || isNaN(max)) {
+                throw new Error("setXRange() arguments must be numbers");
+            }
+
             this.#range.x.min = min;
             this.#range.x.max = max;
             this.#range.x_span = Math.abs(max - min);
@@ -290,7 +313,15 @@
         }
 
         setYRange(min, max) {
-            // @todo check 
+
+            if(arguments.length < 2) {
+                throw new Error("setYRange() requires two arguments");
+            }
+
+            if (isNaN(min) || isNaN(max)) {
+                throw new Error("setYRange() arguments must be numbers");
+            }
+
             this.#range.y.min = min;
             this.#range.y.max = max;
             this.#range.y_span = Math.abs(max - min);
@@ -308,15 +339,14 @@
             this.add(['SETPOS', {"x": x, "y": y}]);
         }
 
-        createDot (x, y, config) {
-
+        createDot (x, y, radius =1.0, color="black") {
 
             if(this.debug) {
                 console.log("create dot @[%s,%s], color:%s, radius:%s", 
                     x, 
                     y, 
-                    config.color, 
-                    config.radius);
+                    color, 
+                    radius);
             }
 
             this.#moveTo(x, y);
@@ -324,8 +354,8 @@
             try {
 
                 this.#drawPixel({
-                    "color": config.color,
-                    "radius": config.radius 
+                    "color": color,
+                    "radius": radius 
                 });
 
             } catch(error) {
@@ -335,7 +365,6 @@
              }
         }
 
-        
 
         forward(d) {
             
@@ -379,7 +408,7 @@
         }
 
         // axes 
-        // 
+        
         showAxis() {
 
             let x_zero = this.#range.x.min + (this.#range.x_span / 2.0); 
@@ -436,15 +465,17 @@
         
         update_handler(frameCount) {
 
+            
             let error = this.plotter.execute(this.plotter.batchSize);
-            if(error) {
-                console.log("plotter command execute error: %d", error);
-                if(error == PLOTTER_NO_COMMAND_ERROR) {
-                    console.log("pause PLOTTER...");
-                    this.plotter.pause();
-                }
+            if(this.plotter.debug) {
+                console.log("plotter.execute() error: %d", error);
             }
 
+            if(error == PLOTTER_NO_COMMAND_ERROR) {
+                console.log("pause PLOTTER...");
+                this.plotter.pause();
+            }
+            
         }
         
         pause() {
