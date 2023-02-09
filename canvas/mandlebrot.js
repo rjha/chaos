@@ -35,14 +35,14 @@ class Mandlebrot {
       this.#plotter = new Plotter({});
       this.#plotter.setXRange(this.#range.x.min, this.#range.x.max);
       this.#plotter.setYRange(this.#range.y.min, this.#range.y.max);
-      this.#plotter.setPixels(this.#grid_size, this.#grid_size);
+      this.#plotter.setResolution(this.#grid_size, this.#grid_size);
 
     }
 
     // public methods 
     setGridSize(points) {
       this.#grid_size = points;
-      this.#plotter.setPixels(points, points);
+      this.#plotter.setResolution(points, points);
     }
 
     setColors(colors) {
