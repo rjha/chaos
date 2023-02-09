@@ -287,19 +287,36 @@
             return this.#debug;
         }
 
+        // get plotter resolutin in pixels 
+        get resolution() {
+
+            return {
+                "x": this.#x_pixels,
+                "y": this.#y_pixels
+            }
+
+        }
+
         // setters
+        // set resolution in pixels
 
-        setPixels(xp, yp) {
+        setResolution(xp, yp) {
 
-            // @todo check? 
             if(arguments.length < 2) {
-                throw new Error("setPixels() requires two arguments");
+                throw new Error("setResolution() requires two arguments");
             }
 
             if (isNaN(xp) || isNaN(yp)) {
-                throw new Error("setPixels() arguments must be numbers");
+                throw new Error("setResolution() arguments must be numbers");
             }
 
+            if( xp > this.#two.width 
+                || yp > this.#two.height) {
+
+                let message = `resolution exceeds canvas pixels [${this.#x_pixels}, ${this.#y_pixels}]`;
+                throw new Error(message);
+            }
+            
             this.#x_pixels = xp;
             this.#y_pixels = yp;
 
@@ -353,6 +370,8 @@
         // public methods 
         // -----------------------------------
 
+        // given a point with x,y coordinates 
+        // return the pixel 
         mapPixel(point={}) {
 
             if(isNaN(point.x) || isNaN(point.y)) {
@@ -416,6 +435,24 @@
             
         }
         
+        // given a pixel  
+        // return a point with x,y co-ordinates
+        mapXY(xp, yp) {
+
+            let x_range = Math.abs(this.#range.x.max - this.#range.x.min);
+            let y_range = Math.abs(this.#range.y.max  - this.#range.y.min);
+            
+            // xc,yc in complex plane 
+            let xc = this.#range.x.min + ((xp / this.#x_pixels) *  x_range);
+            let yc = this.#range.y.min + ((yp / this.#y_pixels) *  y_range);
+      
+            return {
+              "x": xc,
+              "y": yc
+            }
+      
+        }
+
         // command methods 
         // add commands to plotter queue 
         add(command) {
