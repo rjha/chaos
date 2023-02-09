@@ -12,13 +12,14 @@
         import {Plotter} from '/js/plotter.js';
 
         var plotter = new Plotter({"animation" : true});
-        plotter.setDebug(false);
-
+        
         // set X,Y range 
         plotter.setResolution(500, 500);
         plotter.setXRange(-200, 200); 
         plotter.setYRange(-200, 200);
         plotter.showBox();
+        plotter.batchSize = 1;
+        plotter.debug = false; 
 
         // mark origin 
         plotter.setPosition(0, 0);

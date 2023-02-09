@@ -12,14 +12,16 @@
         import {Plotter} from '/js/plotter.js';
 
         var plotter = new Plotter();
-        plotter.setDebug(false);
+        
 
         // set X,Y range 
         plotter.setResolution(500, 500);
         plotter.setXRange(-6.28, 6.28); 
         plotter.setYRange(-6.28, 6.28);
-        plotter.setResolution(400, 400);
-        plotter.setBatchSize(10);
+        
+        plotter.batchSize = 10;
+        plotter.debug = false;
+        
         plotter.showAxis();
         plotter.showBox();
         plotter.bind_animation_handler(plotter.update_handler);

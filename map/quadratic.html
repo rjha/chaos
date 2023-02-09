@@ -15,13 +15,14 @@
     import {Plotter} from '/js/plotter.js';
    
     var plotter = new Plotter({});
-    plotter.setDebug(false);
-    plotter.setResolution(500, 500);
+    plotter.debug = false;
+    plotter.batchSize = 1000;
 
+    plotter.setResolution(500, 500);
     // set X,Y range 
     plotter.setXRange(2.0, 4.0); 
     plotter.setYRange(0, 1);
-    plotter.setBatchSize(1000);
+    
     plotter.showBox();
     
     var r = 0;

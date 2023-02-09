@@ -123,7 +123,8 @@
     bifurcation.step = 0.0001; */ 
 
     var plotter = new Plotter({});
-    plotter.setDebug(false);
+    plotter.batchSize = 1000;
+    plotter.debug = false; 
     plotter.setResolution(500, 500);
 
     // set X,Y range 

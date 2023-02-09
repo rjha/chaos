@@ -15,14 +15,16 @@
         
         
         var plotter = new Plotter({"animation" : true});
-        plotter.setDebug(false);
-
+        
         // set X,Y range 
-        plotter.setResolution(500, 500);
+        plotter.setResolution(400, 400);
         plotter.setXRange(-100, 100); 
         plotter.setYRange(-400, 400);
         plotter.showAxis();
-        plotter.setBatchSize(2);
+        
+        // properties
+        plotter.batchSize = 2;
+        plotter.debug = false; 
         
         
         var x = -20;

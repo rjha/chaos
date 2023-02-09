@@ -48,8 +48,9 @@
 
       // set plotter properties      
       var plotter = new Plotter({}); 
-      plotter.setDebug(false);
-      plotter.setBatchSize(500);
+      plotter.debug = false;
+      plotter.batchSize = 500;
+
       plotter.setXRange(-1.6, 1.6);
       plotter.setYRange(-1.6, 1.6);
       plotter.setResolution(300, 300);
