@@ -1,0 +1,120 @@
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title> mandlebrot demo </title>
+      <style>
+
+        #particles {
+          width:800px; 
+          height:800px;
+        }
+
+      </style>
+
+  </head>
+
+  <body>
+    
+    <canvas id="particles"></canvas>
+
+    <script type="module">
+
+      // Mandlebrot set rendering 
+      // setColorIndex([40, 60, 90, 110, 150, 200, 300]) choice #1
+      
+      import { Complex, MutableComplex } from '/js/complex.js';
+      import { Plotter } from '/js/plotter.js';
+      import { Mandlebrot } from '/js/mandlebrot.js';
+
+      
+      const pixels = 1600;      
+      var plotter;
+      var mandlebrot;
+      var xp = 0;
+
+      function update_tile_handler(frameCount) {
+
+        // add the tiles for xp value  
+        // execute the tiles command
+        this.plotter.mandlebrot.render(xp);
+        this.plotter.executeAll();
+
+        // set for next frame 
+        xp = xp + 1;
+
+        // stop 
+        if(xp > pixels) {
+          console.log("stop rendering...");
+          this.pause();
+        }
+
+        
+        
+      }
+
+
+       // point transformer 
+      function transformer(z0) {
+
+        let z = new MutableComplex(z0.x, z0.y);
+        let n = 0;
+
+        while(n < 1000) {
+          
+          z.power(2);
+          z.add(mandlebrot.cz);
+          
+          if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
+            break;
+          }
+
+          n = n + 1;
+
+        }
+
+        return {
+          "n": n, 
+          "magnitude": Complex.magnitude(z)
+        }
+
+      }
+
+
+     
+      plotter = new Plotter({
+          "overdraw": true,
+          "tiles": pixels,
+          "tileSize": 1
+      });
+
+      plotter.debug = false;
+      plotter.setXRange(-2.0, 2.0);
+      plotter.setYRange(-2.0, 2.0);
+      plotter.setResolution(pixels, pixels);
+
+      // bind animation event 
+      // default animation handler 
+      plotter.bind_animation_handler(update_tile_handler);
+
+      var mandlebrot = new Mandlebrot();
+      mandlebrot.setColorIndex([40, 60, 90, 110, 150, 200, 300]);
+      mandlebrot.setTransformer(transformer);
+      mandlebrot.cz = new Complex(-0.54, 0.54);
+
+      // bind references 
+      mandlebrot.plotter = plotter; 
+      plotter.mandlebrot = mandlebrot;
+
+      // play 
+      plotter.play();
+
+    </script>
+
+
+
+  </body>
+</html>
