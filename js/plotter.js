@@ -12,7 +12,8 @@
         OK: 200, 
         MOVE: 201,
         CREATE_DOT: 202,
-        PIXEL_MAPPING: 203
+        PIXEL_MAPPING: 203,
+        TILE_DOT: 204 
 
     }
 
@@ -38,7 +39,8 @@
         'RT', 
         'PU', 
         'PD', 
-        'SETPOS'];
+        'SETPOS',
+        'TDOT'];
     
     
     class Plotter {
@@ -55,19 +57,40 @@
         
         // two.js instance 
         #two;
-       
+        tiles =[]; 
+        tilesIndex = 0;
 
-        constructor(config ={}) {
+        constructor(args ={}) {
 
             // setup an instance of two.js 
-            let container = config.container || document.body; 
-            let fullscreen = config.fullscreen || true ;
+            // let container = config.container || document.body; 
+            // let fullscreen = config.fullscreen || true ;
             
-            this.#two = new Two({
-                fullscreen: fullscreen
-            }).appendTo(container);
+            // merge defaul config 
+            const defaults = {
+                "container": document.body,
+                "fullscreen": true, 
+                "overdraw": false,
+                "tiles": 0,
+                "tileSize": 1
+            }
 
-            
+            const options = Object.assign(defaults, args);
+
+            if(this.debug) {
+                console.log("create plotter options: %O", options);
+            }
+
+            if(options.overdraw && (options.tiles <= 0)) {
+                throw new Error("canvas overdraw requires tiles!");
+            }
+
+            this.#two = new Two({
+                fullscreen: options.fullscreen,
+                type: Two.Types.canvas,
+                overdraw: options.overdraw
+            }).appendTo(options.container);
+
             // provide plotter reference to two.js 
             this.#two.plotter = this;
 
@@ -86,6 +109,16 @@
                 "x_span": this.#two.width,
                 "y_span": this.#two.height   
             }
+
+            // create tiles
+            for(let i =0; i < options.tiles; i++) {
+                let shape = this.#two.makeRectangle(0, 0, options.tileSize, options.tileSize);
+                shape.opacity = 1.0;
+                this.tiles.push(shape);
+            }
+
+            this.tilesIndex = 0;
+
 
         }
 
@@ -168,7 +201,11 @@
                 case 'DOT': 
                     this.#createDot(args);
                     break;
-                
+
+                case 'TDOT': 
+                    this.#tileDot(args);
+                    break;
+
                 case 'SETPOS':
                     this.#moveCursor(args.x, args.y);
                     break; 
@@ -198,7 +235,7 @@
             const options = Object.assign(defaults, args);
 
             if(this.debug) {
-                console.log("create dot options: %O", options);
+                console.log("createDot() options: %O", options);
             }
 
             // set z-plane cursor
@@ -221,6 +258,41 @@
             // stroke will hide 
             // the color for small dots
             square.noStroke();
+
+        }
+
+
+        #tileDot (args={}) {
+
+             // x, y check 
+             if(isNaN(args.x) || isNaN(args.y)) {
+                let message = `#tileDot() failed, [x= ${args.x}, y= ${args.y}]`;
+                throw new PlotterError(message, Errors.TILE_DOT);
+            }
+
+            // merge defaul config 
+            const defaults = {
+                "color": "black"
+            }
+
+            const options = Object.assign(defaults, args);
+
+            if(this.debug) {
+                console.log("tileDot() options: %O", options);
+            }
+
+            let tiles_size = this.tiles.length;
+            let pixel = this.mapPixel({"x": options.x, "y": options.y});
+
+            // move the tile 
+            this.tiles[this.tilesIndex].position.x = pixel.x;
+            this.tiles[this.tilesIndex].position.y = pixel.y;
+            this.tiles[this.tilesIndex].fill = options.color;
+            this.tiles[this.tilesIndex].noStroke();
+
+            this.tilesIndex = this.tilesIndex + 1;
+            this.tilesIndex = this.tilesIndex % tiles_size;
+
 
         }
 
