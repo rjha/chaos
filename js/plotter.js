@@ -4,10 +4,30 @@
     
     import Two from '/js/two.module.js'
 
-    const PLOTTER_NO_ERROR = 0;
+    // handle these errors    
+    const PLOTTER_UNKNOWN_ERROR = 100;
     const PLOTTER_NO_COMMAND_ERROR = 101;
+    const PLOTTER_UNKNOWN_COMMAND_ERROR = 102;
 
+    // ignore these errors
+    const PLOTTER_MOVE_ERROR = 201;
+    const PLOTTER_CREATE_DOT_ERROR = 202;
+    const PLOTTER_MAP_PIXEL_ERROR = 203;
     
+    
+    class  PlotterError extends Error {
+
+        code = PLOTTER_UNKNOWN_ERROR;
+
+        constructor(message, code) {
+          super(message);
+          this.name = 'PlotterError';
+          this.code = code 
+        }
+
+    }
+    
+
     const PLOTTER_COMMANDS = [
         'DOT', 
         'FD', 
@@ -71,7 +91,8 @@
         #moveCursor(x, y) {
             
             if(isNaN(x) || isNaN(y)) {
-                throw new Error(`moveTo() failed, [x= ${x}, y= ${y}]`);
+                let message = `moveTo() failed, [x= ${x}, y= ${y}]`;
+                throw new PlotterError(message, PLOTTER_MOVE_ERROR);
             }
 
             this.#cursor.x = x;
@@ -111,12 +132,11 @@
         // and run it  
         #popCommand() {
             
-            let error = PLOTTER_NO_ERROR;
             // nothing in queue 
             // the caller should have done the check 
             // throw error!  
             if(this.#commands.length == 0) {
-                return PLOTTER_NO_COMMAND_ERROR;
+                throw new PlotterError("command queue empty", PLOTTER_NO_COMMAND_ERROR);
             }
 
             let [name, args] = this.#commands.shift();
@@ -151,11 +171,9 @@
                     break; 
 
                 default:
-                    console.error("unimplemented command: %s", name);
-
+                    let message = `unknown command ${name}`;
+                    throw new PlotterError(message, PLOTTER_UNKNOWN_COMMAND_ERROR);
             }
-
-            return error; 
 
         }
 
@@ -164,7 +182,8 @@
 
             // x, y check 
             if(isNaN(args.x) || isNaN(args.y)) {
-                throw new Error(`#createDot() failed, [x= ${args.x}, y= ${args.y}]`);
+                let message = `#createDot() failed, [x= ${args.x}, y= ${args.y}]`;
+                throw new PlotterError(message, PLOTTER_CREATE_DOT_ERROR);
             }
 
             // merge defaul config 
@@ -264,6 +283,10 @@
             return this.#commands.length; 
         }
 
+        get debug() {
+            return this.#debug;
+        }
+
         // setters
 
         setPixels(xp, yp) {
@@ -329,12 +352,12 @@
         // -----------------------------------
         // public methods 
         // -----------------------------------
-        
+
         mapPixel(point={}) {
 
             if(isNaN(point.x) || isNaN(point.y)) {
                 let message = `mapPixel(): bad point [x= ${point.x}, y= ${point.y}]`;
-                throw new Error(message);
+                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
             }
 
             if(this.#debug) {
@@ -350,7 +373,7 @@
                 || point.y > this.#range.y.max) {
                 
                 let message = `mapPixel(): out of range [x= ${point.x}, y= ${point.y}]`;
-                throw new Error(message);
+                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
 
             }
 
@@ -359,7 +382,7 @@
             
             if(isNaN(x_scaled) || isNaN(y_scaled)) {
                 let message = `mapPixel(): failed, scaled [x= ${x_scaled}, y= ${y_scaled}]`;
-                throw new Error(message);
+                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
             }
 
             // adjust for canvas co-ordinates
@@ -373,7 +396,7 @@
                 || pixel.y > this.#y_pixels) {
 
                 let message = `mapPixel(): pixel outside canvas [x= ${point.x}, y= ${point.y}]`;
-                throw new Error(message);
+                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
             }
 
             // @todo integer pixels?
@@ -418,17 +441,9 @@
         // default batch size is 1
         execute(size=1) {
 
-            let error = PLOTTER_NO_ERROR;
-            
             for(let i=0; i < size; i = i+1) {
-
-                error = this.#popCommand();
-                if(error) {
-                    break;
-                }
+                this.#popCommand();
             }
-
-            return error; 
 
         }
         
@@ -446,14 +461,25 @@
         
         update_handler(frameCount) {
 
-            let error = this.plotter.execute(this.plotter.batchSize);
-            if(this.plotter.debug) {
-                console.log("plotter.execute() error: %d", error);
-            }
+            try {
 
-            if(error == PLOTTER_NO_COMMAND_ERROR) {
-                console.log("pause PLOTTER...");
-                this.plotter.pause();
+                this.plotter.execute(this.plotter.batchSize);
+
+            } catch(error) {
+
+                if(this.plotter.debug) {
+                    console.error(error);
+                }
+
+                let code = error.code; 
+
+                // pause for low level errors
+                if(code < 200) {
+                    this.plotter.pause();
+                    console.log("code: %d, pause PLOTTER...", code);
+                    return;
+                }
+
             }
             
         }
