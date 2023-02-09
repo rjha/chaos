@@ -68,7 +68,7 @@
 
         // private methods 
 
-        #moveTo(x, y) {
+        #moveCursor(x, y) {
             
             if(isNaN(x) || isNaN(y)) {
                 throw new Error(`moveTo() failed, [x= ${x}, y= ${y}]`);
@@ -148,7 +148,7 @@
                     break;
                 
                 case 'SETPOS':
-                    this.#moveTo(args.x, args.y);
+                    this.#moveCursor(args.x, args.y);
                     break; 
 
                 default:
@@ -245,7 +245,7 @@
             this.#visible = true;
         }
 
-        
+
         // getters 
         get range() {
 
