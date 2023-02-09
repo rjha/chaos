@@ -107,65 +107,6 @@
             
         }
 
-        mapPixel(point) {
-
-            if(this.#debug) {
-                console.log("mapPixel() point [%s, %s]", point.x, point.y);
-            }
-
-            // point should be inside the 
-            //  range of allowed values 
-            // in the z-plane 
-            if(point.x < this.#range.x.min
-                || point.x > this.#range.x.max 
-                || point.y < this.#range.y.min 
-                || point.y > this.#range.y.max) {
-                
-                let message = `mapPixel(): out of range [x= ${point.x}, y= ${point.y}]`;
-                throw new Error(message);
-
-            }
-
-            let x_scaled = Math.abs(point.x - this.#range.x.min) / this.#range.x_span;
-            let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
-            
-            if(isNaN(x_scaled) || isNaN(y_scaled)) {
-                let message = `mapPixel(): failed, scaled [x= ${x_scaled}, y= ${y_scaled}]`;
-                throw new Error(message);
-            }
-
-            // adjust for canvas co-ordinates
-            let pixel = {
-                "x": x_scaled * this.#x_pixels ,
-                "y": this.#y_pixels - (y_scaled * this.#y_pixels)
-            };
-
-            // mapped pixel should be in bounds 
-            if(pixel.x > this.#x_pixels 
-                || pixel.y > this.#y_pixels) {
-
-                let message = `mapPixel(): pixel outside canvas [x= ${point.x}, y= ${point.y}]`;
-                throw new Error(message);
-            }
-
-            // @todo integer pixels?
-            // pixel.x = Math.floor(pixel.x);
-            
-            if(this.#debug) {
-
-                console.log("point[%s, %s] mapped to -> pixel [%s, %s]", 
-                    point.x, 
-                    point.y, 
-                    pixel.x, 
-                    pixel.y);
-
-            }
-           
-            return pixel;
-            
-        }
-
-        
         // pop next command from plotter queue 
         // and run it  
         #popCommand() {
@@ -219,135 +160,7 @@
 
         }
 
-        // public methods 
-        // add commands to plotter queue 
-        add(command) {
-
-            if(!Array.isArray(command)) {
-                throw new Error("add() requires an array");
-            }
-
-            let [name, args] = command;
-            if(!PLOTTER_COMMANDS.includes(name)) {
-                throw new Error(`add() unknown command ${name}`);
-            }
-
-            // @todo input check 
-            this.#commands.push(command);
-
-        }
-
-       
-        // execute commands waiting in plotter 
-        // queue. 
-        // @size is batch size 
-        // default batch size is 1
-        execute(size=1) {
-
-            let error = PLOTTER_NO_ERROR;
-            
-            for(let i=0; i < size; i = i+1) {
-
-                error = this.#popCommand();
-                if(error) {
-                    break;
-                }
-            }
-
-            return error; 
-
-        }
-        
-        executeAll() {
-            return this.execute(this.queueSize);
-        }
-        
-
-        get range() {
-
-            let value =  
-            {
-                "x": { "min": this.#range.x.min, "max": this.#range.x.max},
-                "y": { "min": this.#range.y.min, "max": this.#range.y.max},
-                "x_span": this.#range.x_span,
-                "y_span": this.#range.y_span    
-            }
-
-            return value;
-        }
-
-        get batchSize() {
-            return this.#batchSize;
-        }
-
-        get two() {
-            return this.#two;
-        }
-
-        get queueSize() {
-            return this.#commands.length; 
-        }
-
-        // public methods 
-
-        setPixels(xp, yp) {
-
-            if(arguments.length < 2) {
-                throw new Error("setPixels() requires two arguments");
-            }
-
-            if (isNaN(xp) || isNaN(yp)) {
-                throw new Error("setPixels() arguments must be numbers");
-            }
-
-            this.#x_pixels = xp;
-            this.#y_pixels = yp;
-
-        }
-
-        setXRange(min, max) {
-
-            if(arguments.length < 2) {
-                throw new Error("setXRange() requires two arguments");
-            }
-
-            if (isNaN(min) || isNaN(max)) {
-                throw new Error("setXRange() arguments must be numbers");
-            }
-
-            this.#range.x.min = min;
-            this.#range.x.max = max;
-            this.#range.x_span = Math.abs(max - min);
-
-        }
-
-        setYRange(min, max) {
-
-            if(arguments.length < 2) {
-                throw new Error("setYRange() requires two arguments");
-            }
-
-            if (isNaN(min) || isNaN(max)) {
-                throw new Error("setYRange() arguments must be numbers");
-            }
-
-            this.#range.y.min = min;
-            this.#range.y.max = max;
-            this.#range.y_span = Math.abs(max - min);
-        }
-
-        setDebug(value) {
-            this.#debug = value;
-        }
-
-        setBatchSize(size) {
-            this.#batchSize = size;
-        }
-
-        setPosition(x, y) {
-            this.add(['SETPOS', {"x": x, "y": y}]);
-        }
-
+        // commands 
         createDot (args = {}) {
 
             // x, y check 
@@ -432,8 +245,239 @@
             this.#visible = true;
         }
 
-        // axes 
         
+        // getters 
+        get range() {
+
+            let value =  
+            {
+                "x": { "min": this.#range.x.min, "max": this.#range.x.max},
+                "y": { "min": this.#range.y.min, "max": this.#range.y.max},
+                "x_span": this.#range.x_span,
+                "y_span": this.#range.y_span    
+            }
+
+            return value;
+        }
+
+        get batchSize() {
+            return this.#batchSize;
+        }
+
+        get two() {
+            return this.#two;
+        }
+
+        get queueSize() {
+            return this.#commands.length; 
+        }
+
+        // setters
+
+        setPixels(xp, yp) {
+
+            // @todo check? 
+            if(arguments.length < 2) {
+                throw new Error("setPixels() requires two arguments");
+            }
+
+            if (isNaN(xp) || isNaN(yp)) {
+                throw new Error("setPixels() arguments must be numbers");
+            }
+
+            this.#x_pixels = xp;
+            this.#y_pixels = yp;
+
+        }
+
+        setXRange(min, max) {
+
+            if(arguments.length < 2) {
+                throw new Error("setXRange() requires two arguments");
+            }
+
+            if (isNaN(min) || isNaN(max)) {
+                throw new Error("setXRange() arguments must be numbers");
+            }
+
+            this.#range.x.min = min;
+            this.#range.x.max = max;
+            this.#range.x_span = Math.abs(max - min);
+
+        }
+
+        setYRange(min, max) {
+
+            if(arguments.length < 2) {
+                throw new Error("setYRange() requires two arguments");
+            }
+
+            if (isNaN(min) || isNaN(max)) {
+                throw new Error("setYRange() arguments must be numbers");
+            }
+
+            this.#range.y.min = min;
+            this.#range.y.max = max;
+            this.#range.y_span = Math.abs(max - min);
+        }
+
+        setDebug(value) {
+            this.#debug = value;
+        }
+
+        setBatchSize(size) {
+            this.#batchSize = size;
+        }
+
+        setPosition(x, y) {
+            this.add(['SETPOS', {"x": x, "y": y}]);
+        }
+
+
+        // -----------------------------------
+        // public methods 
+        // -----------------------------------
+        mapPixel(point) {
+
+            if(this.#debug) {
+                console.log("mapPixel() point [%s, %s]", point.x, point.y);
+            }
+
+            // point should be inside the 
+            //  range of allowed values 
+            // in the z-plane 
+            if(point.x < this.#range.x.min
+                || point.x > this.#range.x.max 
+                || point.y < this.#range.y.min 
+                || point.y > this.#range.y.max) {
+                
+                let message = `mapPixel(): out of range [x= ${point.x}, y= ${point.y}]`;
+                throw new Error(message);
+
+            }
+
+            let x_scaled = Math.abs(point.x - this.#range.x.min) / this.#range.x_span;
+            let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
+            
+            if(isNaN(x_scaled) || isNaN(y_scaled)) {
+                let message = `mapPixel(): failed, scaled [x= ${x_scaled}, y= ${y_scaled}]`;
+                throw new Error(message);
+            }
+
+            // adjust for canvas co-ordinates
+            let pixel = {
+                "x": x_scaled * this.#x_pixels ,
+                "y": this.#y_pixels - (y_scaled * this.#y_pixels)
+            };
+
+            // mapped pixel should be in bounds 
+            if(pixel.x > this.#x_pixels 
+                || pixel.y > this.#y_pixels) {
+
+                let message = `mapPixel(): pixel outside canvas [x= ${point.x}, y= ${point.y}]`;
+                throw new Error(message);
+            }
+
+            // @todo integer pixels?
+            // pixel.x = Math.floor(pixel.x);
+            
+            if(this.#debug) {
+
+                console.log("point[%s, %s] mapped to -> pixel [%s, %s]", 
+                    point.x, 
+                    point.y, 
+                    pixel.x, 
+                    pixel.y);
+
+            }
+           
+            return pixel;
+            
+        }
+        
+        // command methods 
+        // add commands to plotter queue 
+        add(command) {
+
+            if(!Array.isArray(command)) {
+                throw new Error("add() requires an array");
+            }
+
+            let [name, args] = command;
+            if(!PLOTTER_COMMANDS.includes(name)) {
+                throw new Error(`add() unknown command ${name}`);
+            }
+
+            // @todo input check 
+            this.#commands.push(command);
+
+        }
+
+       
+        // execute commands waiting in plotter 
+        // queue. 
+        // @size is batch size 
+        // default batch size is 1
+        execute(size=1) {
+
+            let error = PLOTTER_NO_ERROR;
+            
+            for(let i=0; i < size; i = i+1) {
+
+                error = this.#popCommand();
+                if(error) {
+                    break;
+                }
+            }
+
+            return error; 
+
+        }
+        
+        executeAll() {
+            return this.execute(this.queueSize);
+        }
+
+
+        // animation methods 
+        // 
+        bind_animation_handler(event_handler) {
+            this.#two.bind('update', event_handler);
+        }
+        
+        
+        update_handler(frameCount) {
+
+            let error = this.plotter.execute(this.plotter.batchSize);
+            if(this.plotter.debug) {
+                console.log("plotter.execute() error: %d", error);
+            }
+
+            if(error == PLOTTER_NO_COMMAND_ERROR) {
+                console.log("pause PLOTTER...");
+                this.plotter.pause();
+            }
+            
+        }
+        
+        pause() {
+            this.#two.pause();
+        }
+
+        play() {
+            this.#two.play();
+        }
+
+        update() {
+            this.#two.update();
+        }
+
+
+        // --------------------------
+        // utility methods 
+        // ---------------------------
+        // axes
+
         showAxis() {
 
             let x_zero = this.#range.x.min + (this.#range.x_span / 2.0); 
@@ -482,38 +526,6 @@
 
         }
 
-        
-        bind_animation_handler(event_handler) {
-            this.#two.bind('update', event_handler);
-        }
-        
-        
-        update_handler(frameCount) {
-
-            
-            let error = this.plotter.execute(this.plotter.batchSize);
-            if(this.plotter.debug) {
-                console.log("plotter.execute() error: %d", error);
-            }
-
-            if(error == PLOTTER_NO_COMMAND_ERROR) {
-                console.log("pause PLOTTER...");
-                this.plotter.pause();
-            }
-            
-        }
-        
-        pause() {
-            this.#two.pause();
-        }
-
-        play() {
-            this.#two.play();
-        }
-
-        update() {
-            this.#two.update();
-        }
 
     }
     
