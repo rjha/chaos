@@ -23,18 +23,18 @@
       // 
       // 4. Few interesting c values are, 
       // 
-      // a. (0.355534, -0.337292) peacock feather
+      // a. (0.355534, -0.337292) Peacock feather
       // b. (-0.1, 0.65) 4 eyes 
-      // c. (-0.835, -0.2321) Dendrite 
-      // d. (-0.54, 0.54) highway fractal 
+      // c. (-0.835, -0.2321) Thin Dendrite 
+      // d. (-0.54, 0.54) Highway fractal 
       //    The dendrite on Mandlebrot book cover
       //  
       // e. (0.355, 0.355) connected spirals 
       // f. (0.40, 0.30) 4 flowers  
       // g. (0.285, 0.01) floaters  
-      // h. (-0.70000, 0.27015) 
+      // h. (-0.70000, 0.27015) Grass?
       // i. (0.3755, -0.3) fireworks
-      // j. (-0.04, -0.684) 
+      // j. (-0.04, -0.684) embroidery
       // k. (0.285, 0.535) monkey toy 
       // 
       // @see https://commons.wikimedia.org/wiki/Category:Julia_sets
@@ -50,18 +50,19 @@
       var plotter = new Plotter({}); 
       plotter.setDebug(false);
       plotter.setBatchSize(500);
-      plotter.setPixels(500, 500);
+      plotter.setXRange(-1.6, 1.6);
+      plotter.setYRange(-1.6, 1.6);
+      plotter.setResolution(300, 300);
+
       // default animation handler 
       plotter.bind_animation_handler(plotter.update_handler);
 
       var julia = new Julia();
-      // set plotter 
-      julia.plotter = plotter; 
-      
-      julia.setXRange(-2.0, 2.0);
-      julia.setYRange(-2.0, 2.0);
-      julia.setGridSize(500);
       julia.setFixedParameter(0.285, 0.535);
+
+      // bind plotter 
+      julia.plotter = plotter;
+      // generate commands
       julia.render();
 
       // play animation 

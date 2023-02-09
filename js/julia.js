@@ -8,13 +8,7 @@ const MAX_ITER = 1000;
 
 class Julia {
 
-    x_min = -2.0;
-    x_max = 2.0 ;
-    y_min = -2.0;
-    y_max = 2.0;
-    points = 500;
     debug = false; 
-
     pixels = [];
     shades = [];
     shades_index = [];
@@ -34,23 +28,6 @@ class Julia {
     // 4 eyes pattern 
     cz = new Complex(-0.1, 0.65); 
     
-    setXRange(x_min, x_max) {
-      this.x_min = x_min;
-      this.x_max = x_max;
-      this.plotter.setXRange(x_min, x_max); 
-
-    }
-
-    setYRange(y_min, y_max) {
-      this.y_min = y_min;
-      this.y_max = y_max;
-      this.plotter.setYRange(y_min, y_max);
-    }
-
-    setGridSize(points) {
-      this.points = points;
-    }
-
     setFixedParameter(x, y) {
       this.cz = new Complex(x, y);
     }
@@ -64,13 +41,14 @@ class Julia {
             this.shades[i] = 0;
         }
 
+        let resolution = this.plotter.resolution;
 
-        for(let xp = 0; xp < this.points; xp = xp + 1) {
-            for(let yp = 0; yp < this.points; yp = yp + 1) {
+        for(let xp = 0; xp < resolution.x; xp = xp + 1) {
+            for(let yp = 0; yp < resolution.y; yp = yp + 1) {
 
-                // map the pixel into a number 
-                // in complex plane 
-                let z = this.#mapPixel(xp, yp);
+                // map the pixel into a 
+                // x,y number in the complex plane 
+                let z = this.plotter.mapXY(xp, yp);
                 let result = this.#transform(z);
                 
                 this.pixels.push({
@@ -122,21 +100,6 @@ class Julia {
       }
 
       return this.colors[colors_size - 1];
-
-    }
-
-    #mapPixel(xp, yp) {
-
-      let x_range = Math.abs(this.x_max - this.x_min);
-      let y_range = Math.abs(this.y_max - this.y_min);
-
-      let xc = this.x_min + ((xp / this.points) *  x_range);
-      let yc = this.y_min + ((yp / this.points) *  y_range);
-
-      return {
-        "x": xc,
-        "y": yc
-      }
 
     }
 
