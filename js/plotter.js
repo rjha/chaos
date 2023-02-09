@@ -298,8 +298,19 @@
         }
 
         // setters
-        // set resolution in pixels
+        set debug(value) {
+            this.#debug = value;
+        }
 
+        set batchSize(size) {
+            this.#batchSize = size;
+        }
+
+        // -----------------------------------
+        // public methods 
+        // -----------------------------------
+
+        // set resolution in pixels
         setResolution(xp, yp) {
 
             if(arguments.length < 2) {
@@ -310,12 +321,12 @@
                 throw new Error("setResolution() arguments must be numbers");
             }
 
-            if( xp > this.#two.width 
-                || yp > this.#two.height) {
-
+            /*
+            @todo 
+            if(xp > this.#two.width || yp > this.#two.height) {
                 let message = `resolution exceeds canvas pixels [${this.#x_pixels}, ${this.#y_pixels}]`;
                 throw new Error(message);
-            }
+            } */ 
             
             this.#x_pixels = xp;
             this.#y_pixels = yp;
@@ -353,22 +364,12 @@
             this.#range.y_span = Math.abs(max - min);
         }
 
-        setDebug(value) {
-            this.#debug = value;
-        }
-
-        setBatchSize(size) {
-            this.#batchSize = size;
-        }
+       
 
         setPosition(x, y) {
             this.add(['SETPOS', {"x": x, "y": y}]);
         }
 
-
-        // -----------------------------------
-        // public methods 
-        // -----------------------------------
 
         // given a point with x,y coordinates 
         // return the pixel 
@@ -477,7 +478,7 @@
         // @size is batch size 
         // default batch size is 1
         execute(size=1) {
-
+            
             for(let i=0; i < size; i = i+1) {
                 this.#popCommand();
             }
