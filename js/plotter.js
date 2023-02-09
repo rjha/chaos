@@ -3,26 +3,29 @@
    
     
     import Two from '/js/two.module.js'
-
-    // handle these errors    
-    const PLOTTER_UNKNOWN_ERROR = 100;
-    const PLOTTER_NO_COMMAND_ERROR = 101;
-    const PLOTTER_UNKNOWN_COMMAND_ERROR = 102;
-
-    // ignore these errors
-    const PLOTTER_MOVE_ERROR = 201;
-    const PLOTTER_CREATE_DOT_ERROR = 202;
-    const PLOTTER_MAP_PIXEL_ERROR = 203;
     
-    
+    const Errors = {
+
+        INTERNAL: 100,
+        EMPTY_QUEUE: 101,
+        UNKNOWN_COMMAND: 102,
+        OK: 200, 
+        MOVE: 201,
+        CREATE_DOT: 202,
+        PIXEL_MAPPING: 203
+
+    }
+
+    Object.freeze(Errors);
+
     class  PlotterError extends Error {
 
-        code = PLOTTER_UNKNOWN_ERROR;
+        code = Errors.INTERNAL;
 
         constructor(message, code) {
-          super(message);
-          this.name = 'PlotterError';
-          this.code = code 
+            super(message);
+            this.name = 'PlotterError';
+            this.code = code 
         }
 
     }
@@ -92,7 +95,7 @@
             
             if(isNaN(x) || isNaN(y)) {
                 let message = `moveTo() failed, [x= ${x}, y= ${y}]`;
-                throw new PlotterError(message, PLOTTER_MOVE_ERROR);
+                throw new PlotterError(message, Errors.MOVE);
             }
 
             this.#cursor.x = x;
@@ -136,7 +139,7 @@
             // the caller should have done the check 
             // throw error!  
             if(this.#commands.length == 0) {
-                throw new PlotterError("command queue empty", PLOTTER_NO_COMMAND_ERROR);
+                throw new PlotterError("command queue empty", Erros.EMPTY_QUEUE);
             }
 
             let [name, args] = this.#commands.shift();
@@ -172,7 +175,7 @@
 
                 default:
                     let message = `unknown command ${name}`;
-                    throw new PlotterError(message, PLOTTER_UNKNOWN_COMMAND_ERROR);
+                    throw new PlotterError(message, Errors.UNKNOWN_COMMAND);
             }
 
         }
@@ -183,7 +186,7 @@
             // x, y check 
             if(isNaN(args.x) || isNaN(args.y)) {
                 let message = `#createDot() failed, [x= ${args.x}, y= ${args.y}]`;
-                throw new PlotterError(message, PLOTTER_CREATE_DOT_ERROR);
+                throw new PlotterError(message, Errors.CREATE_DOT);
             }
 
             // merge defaul config 
@@ -257,7 +260,11 @@
         }
 
 
-        // getters 
+        // getters
+        static get ERRORS() {
+            return Errors;
+        }
+
         get range() {
 
             let value =  
@@ -377,7 +384,7 @@
 
             if(isNaN(point.x) || isNaN(point.y)) {
                 let message = `mapPixel(): bad point [x= ${point.x}, y= ${point.y}]`;
-                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
+                throw new PlotterError(message, Errors.PIXEL_MAPPING);
             }
 
             if(this.#debug) {
@@ -393,7 +400,7 @@
                 || point.y > this.#range.y.max) {
                 
                 let message = `mapPixel(): out of range [x= ${point.x}, y= ${point.y}]`;
-                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
+                throw new PlotterError(message, Errors.PIXEL_MAPPING);
 
             }
 
@@ -402,7 +409,7 @@
             
             if(isNaN(x_scaled) || isNaN(y_scaled)) {
                 let message = `mapPixel(): failed, scaled [x= ${x_scaled}, y= ${y_scaled}]`;
-                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
+                throw new PlotterError(message, Errors.PIXEL_MAPPING);
             }
 
             // adjust for canvas co-ordinates
@@ -416,7 +423,7 @@
                 || pixel.y > this.#y_pixels) {
 
                 let message = `mapPixel(): pixel outside canvas [x= ${point.x}, y= ${point.y}]`;
-                throw new PlotterError(message, PLOTTER_MAP_PIXEL_ERROR);
+                throw new PlotterError(message, Errors.PIXEL_MAPPING);
             }
 
             // @todo integer pixels?
@@ -512,7 +519,7 @@
                 let code = error.code; 
 
                 // pause for low level errors
-                if(code < 200) {
+                if(code < Errors.OK) {
                     this.plotter.pause();
                     console.log("code: %d, pause PLOTTER...", code);
                     return;
