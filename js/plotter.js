@@ -6,6 +6,16 @@
 
     const PLOTTER_NO_ERROR = 0;
     const PLOTTER_NO_COMMAND_ERROR = 101;
+
+    
+    const PLOTTER_COMMANDS = [
+        'DOT', 
+        'FD', 
+        'LT', 
+        'RT', 
+        'PU', 
+        'PD', 
+        'SETPOS'];
     
     
     class Plotter {
@@ -60,6 +70,10 @@
 
         #moveTo(x, y) {
             
+            if(isNaN(x) || isNaN(y)) {
+                throw new Error(`moveTo() failed, [x= ${x}, y= ${y}]`);
+            }
+
             this.#current.x = x;
             this.#current.y = y;
             
@@ -93,23 +107,6 @@
             
         }
 
-
-        #drawPixel(config) {
-            
-            let side = config.radius || 1.0 ;
-            let color = config.color || "black";
-            let pixel = this.mapPixel(this.#current);
-            let square = this.#two.makeRectangle(pixel.x, pixel.y, side, side);
-
-            // dot props
-            square.fill = color;
-            square.opacity = 1.0;
-            // stroke will hide 
-            // the color for small dots
-            square.noStroke();
-            
-        }
-
         mapPixel(point) {
 
             if(this.#debug) {
@@ -124,7 +121,7 @@
                 || point.y < this.#range.y.min 
                 || point.y > this.#range.y.max) {
                 
-                let message = `mapPixel(): [${point.x}, ${point.y}] out of range `;
+                let message = `mapPixel(): out of range [x= ${point.x}, y= ${point.y}]`;
                 throw new Error(message);
 
             }
@@ -133,7 +130,7 @@
             let y_scaled = Math.abs(point.y - this.#range.y.min) / this.#range.y_span;
             
             if(isNaN(x_scaled) || isNaN(y_scaled)) {
-                let message = `mapPixel(): [scaled value is NaN [${x_scaled}, ${y_scaled}]`;
+                let message = `mapPixel(): failed, scaled [x= ${x_scaled}, y= ${y_scaled}]`;
                 throw new Error(message);
             }
 
@@ -147,7 +144,7 @@
             if(pixel.x > this.#x_pixels 
                 || pixel.y > this.#y_pixels) {
 
-                let message = `mapPixel(): pixel [${point.x}, ${point.y}] out of canvas `;
+                let message = `mapPixel(): pixel outside canvas [x= ${point.x}, y= ${point.y}]`;
                 throw new Error(message);
             }
 
@@ -183,9 +180,8 @@
 
             let [name, args] = this.#commands.shift();
             if(this.#debug) {
-                console.log("execute command -> %s, args [%O]", name, args);
+                console.log("pop command %s, args [%O]", name, args);
             }
-            
             
             switch(name) {
 
@@ -206,7 +202,8 @@
                     break;
                 
                 case 'DOT': 
-                    this.createDot(args.x, args.y, args.radius, args.color);
+                    
+                    this.createDot(args);
                     break;
                 
                 case 'SETPOS':
@@ -214,7 +211,7 @@
                     break; 
 
                 default:
-                    console.error("unimplemented command -> %s", name);
+                    console.error("unimplemented command: %s", name);
 
             }
 
@@ -225,7 +222,19 @@
         // public methods 
         // add commands to plotter queue 
         add(command) {
+
+            if(!Array.isArray(command)) {
+                throw new Error("add() requires an array");
+            }
+
+            let [name, args] = command;
+            if(!PLOTTER_COMMANDS.includes(name)) {
+                throw new Error(`add() unknown command ${name}`);
+            }
+
+            // @todo input check 
             this.#commands.push(command);
+
         }
 
        
@@ -339,30 +348,46 @@
             this.add(['SETPOS', {"x": x, "y": y}]);
         }
 
-        createDot (x, y, radius =1.0, color="black") {
+        createDot (args = {}) {
 
-            if(this.debug) {
-                console.log("create dot @[%s,%s], color:%s, radius:%s", 
-                    x, 
-                    y, 
-                    color, 
-                    radius);
+            // x, y check 
+            if(isNaN(args.x) || isNaN(args.y)) {
+                throw new Error(`createDot() failed, [x= ${args.x}, y= ${args.y}]`);
             }
 
-            this.#moveTo(x, y);
+            // merge defaul config 
+            const defaults = {
+                "color": "black",
+                "radius": 1.0
+            }
 
-            try {
+            const options = Object.assign(defaults, args);
 
-                this.#drawPixel({
-                    "color": color,
-                    "radius": radius 
-                });
+            if(this.debug) {
+                console.log("create dot options: %O", options);
+            }
 
-            } catch(error) {
-                // @todo 
-                // indicate mapping errors 
-                // console.error(error);
-             }
+            // set z-plane cursor
+            this.#current.x = options.x;
+            this.#current.y = options.y;
+
+            // pixel space 
+            let pixel = this.mapPixel(this.#current);
+
+            // draw the dot
+            let square = this.#two.makeRectangle(
+                pixel.x, 
+                pixel.y, 
+                options.radius, 
+                options.radius);
+            
+            // dot props
+            square.fill = options.color;
+            square.opacity = 1.0;
+            // stroke will hide 
+            // the color for small dots
+            square.noStroke();
+
         }
 
 
