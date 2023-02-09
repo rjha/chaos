@@ -67,7 +67,7 @@
         }
 
         // private methods 
-
+        // drawing primitives 
         #moveCursor(x, y) {
             
             if(isNaN(x) || isNaN(y)) {
@@ -127,24 +127,23 @@
             switch(name) {
 
                 case 'FD':
-                    this.forward(args);
+                    this.#forward(args);
                     break;
                 case 'LT':
-                    this.left(args);
+                    this.#left(args);
                     break;
                 case 'RT':
-                    this.right(args);
+                    this.#right(args);
                     break;
                 case 'PU':
-                    this.penUp();
+                    this.#penUp();
                     break;
                 case 'PD': 
-                    this.penDown();
+                    this.#penDown();
                     break;
                 
                 case 'DOT': 
-                    
-                    this.createDot(args);
+                    this.#createDot(args);
                     break;
                 
                 case 'SETPOS':
@@ -160,12 +159,12 @@
 
         }
 
-        // commands 
-        createDot (args = {}) {
+        // command methods 
+        #createDot (args = {}) {
 
             // x, y check 
             if(isNaN(args.x) || isNaN(args.y)) {
-                throw new Error(`createDot() failed, [x= ${args.x}, y= ${args.y}]`);
+                throw new Error(`#createDot() failed, [x= ${args.x}, y= ${args.y}]`);
             }
 
             // merge defaul config 
@@ -204,44 +203,37 @@
         }
 
 
-        forward(d) {
+        #forward(d) {
             
             // get projection of d 
             let radians = (Math.PI / 180.0) * this.#theta;
-            let temp = {
+            let next = {
                 "x": this.#cursor.x + d * Math.cos(radians),
                 "y":  this.#cursor.y + d * Math.sin(radians)
             }
 
-            try {
+            // assign new cursor position after 
+            // drawing the line
+            this.#drawLine(this.#cursor, next); 
+            this.#cursor.x = next.x; 
+            this.#cursor.y = next.y;
 
-                // assign new cursor position after 
-                // drawing the line
-                this.#drawLine(this.#cursor, temp); 
-                this.#cursor.x = temp.x; 
-                this.#cursor.y = temp.y;
-
-            } catch(error) {
-                // @todo indicate mapping errors 
-               // console.error(error);
-            }
-            
         }
         
-        right(angle) {
+        #right(angle) {
             this.#theta = (this.#theta - angle + 360) % 360;
         }
     
-        left(angle) {
+        #left(angle) {
             this.#theta = (this.#theta + angle + 360) % 360;
         }
 
         
-        penUp() {
+        #penUp() {
             this.#visible = false;
         }
 
-        penDown() {
+        #penDown() {
             this.#visible = true;
         }
 
@@ -337,7 +329,13 @@
         // -----------------------------------
         // public methods 
         // -----------------------------------
-        mapPixel(point) {
+        
+        mapPixel(point={}) {
+
+            if(isNaN(point.x) || isNaN(point.y)) {
+                let message = `mapPixel(): bad point [x= ${point.x}, y= ${point.y}]`;
+                throw new Error(message);
+            }
 
             if(this.#debug) {
                 console.log("mapPixel() point [%s, %s]", point.x, point.y);
