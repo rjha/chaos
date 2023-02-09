@@ -26,7 +26,7 @@
         #commands = [];
         #x_pixels = 0;
         #y_pixels = 0;
-        #current = {};
+        #cursor = {};
         #range = {} ;
         #batchSize = 1;
         
@@ -52,7 +52,7 @@
             this.#x_pixels = this.#two.width;
             this.#y_pixels = this.#two.height;
 
-            this.#current = {
+            this.#cursor = {
                 "x": 0,
                 "y": 0
             };
@@ -74,8 +74,8 @@
                 throw new Error(`moveTo() failed, [x= ${x}, y= ${y}]`);
             }
 
-            this.#current.x = x;
-            this.#current.y = y;
+            this.#cursor.x = x;
+            this.#cursor.y = y;
             
             if(this.#debug) {
                 console.log("moved cursor to [%s, %s] ", x, y);
@@ -368,11 +368,11 @@
             }
 
             // set z-plane cursor
-            this.#current.x = options.x;
-            this.#current.y = options.y;
+            this.#cursor.x = options.x;
+            this.#cursor.y = options.y;
 
             // pixel space 
-            let pixel = this.mapPixel(this.#current);
+            let pixel = this.mapPixel(this.#cursor);
 
             // draw the dot
             let square = this.#two.makeRectangle(
@@ -396,17 +396,17 @@
             // get projection of d 
             let radians = (Math.PI / 180.0) * this.#theta;
             let temp = {
-                "x": this.#current.x + d * Math.cos(radians),
-                "y":  this.#current.y + d * Math.sin(radians)
+                "x": this.#cursor.x + d * Math.cos(radians),
+                "y":  this.#cursor.y + d * Math.sin(radians)
             }
 
             try {
 
                 // assign new cursor position after 
                 // drawing the line
-                this.#drawLine(this.#current, temp); 
-                this.#current.x = temp.x; 
-                this.#current.y = temp.y;
+                this.#drawLine(this.#cursor, temp); 
+                this.#cursor.x = temp.x; 
+                this.#cursor.y = temp.y;
 
             } catch(error) {
                 // @todo indicate mapping errors 
