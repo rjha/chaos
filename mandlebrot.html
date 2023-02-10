@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title> mandlebrot demo </title>
       <style>
-
+        
         #particles {
-          width:800px; 
-          height:800px;
-        }
+          width:400px; 
+          height:400px;
+        } 
 
       </style>
 
@@ -31,7 +31,7 @@
       import { Mandlebrot } from '/js/mandlebrot.js';
 
       
-      const pixels = 500;      
+      const pixels = 600;      
       var plotter;
       var mandlebrot;
       var xp = 0;
@@ -86,14 +86,19 @@
 
      
       plotter = new Plotter({
+
           "overdraw": true,
-          "tiles": pixels,
-          "tileSize": 1
+          "tiles": {
+            "size": 1,
+            "total": pixels
+          },
+          "width": pixels, 
+          "height": pixels
       });
 
       plotter.debug = false;
-      plotter.setXRange(-2.0, 2.0);
-      plotter.setYRange(-2.0, 2.0);
+      plotter.setXRange(-1.5, 1.5);
+      plotter.setYRange(-1.5, 1.5);
       plotter.setResolution(pixels, pixels);
 
       // bind animation event 
@@ -103,7 +108,7 @@
       var mandlebrot = new Mandlebrot();
       mandlebrot.setColorIndex([40, 60, 90, 110, 150, 200, 300]);
       mandlebrot.setTransformer(transformer);
-      mandlebrot.cz = new Complex(-0.54, 0.54);
+      mandlebrot.cz = new Complex(-0.1, 0.65);
 
       // bind references 
       mandlebrot.plotter = plotter; 
