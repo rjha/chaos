@@ -62,38 +62,29 @@
 
         constructor(args ={}) {
 
-            // setup an instance of two.js 
-            // let container = config.container || document.body; 
-            // let fullscreen = config.fullscreen || true ;
-            
-            // merge defaul config 
+            // default options for two.js canvas
             const defaults = {
                 "container": document.body,
                 "fullscreen": true, 
                 "overdraw": false,
-                "tiles": 0,
-                "tileSize": 1
+                "type": Two.Types.canvas,
+                "tiles": {
+                    "total": 0
+                }
             }
+
 
             const options = Object.assign(defaults, args);
-
-            if(this.debug) {
-                console.log("create plotter options: %O", options);
-            }
-
+            console.log("plotter options: %O", options);
+            
             if(options.overdraw && (options.tiles <= 0)) {
                 throw new Error("canvas overdraw requires tiles!");
             }
 
-            this.#two = new Two({
-                fullscreen: options.fullscreen,
-                type: Two.Types.canvas,
-                overdraw: options.overdraw
-            }).appendTo(options.container);
-
-            // provide plotter reference to two.js 
+            this.#two = new Two(options).appendTo(options.container)
+            // bind plotter reference to two.js instance
             this.#two.plotter = this;
-
+            
             // setup canvas size using two.js properties 
             this.#x_pixels = this.#two.width;
             this.#y_pixels = this.#two.height;
@@ -111,8 +102,9 @@
             }
 
             // create tiles
-            for(let i =0; i < options.tiles; i++) {
-                let shape = this.#two.makeRectangle(0, 0, options.tileSize, options.tileSize);
+            let tile_size = options.tiles.size || 1;
+            for(let i =0; i < options.tiles.total; i++) {
+                let shape = this.#two.makeRectangle(0, 0, tile_size, tile_size);
                 shape.opacity = 1.0;
                 this.tiles.push(shape);
             }
