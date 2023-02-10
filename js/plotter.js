@@ -164,7 +164,7 @@
             // the caller should have done the check 
             // throw error!  
             if(this.#commands.length == 0) {
-                throw new PlotterError("command queue empty", Erros.EMPTY_QUEUE);
+                throw new PlotterError("command queue empty", Errors.EMPTY_QUEUE);
             }
 
             let [name, args] = this.#commands.shift();
@@ -581,9 +581,8 @@
                 }
 
                 let code = error.code; 
-
                 // pause for low level errors
-                if(code < Errors.OK) {
+                if(code == Errors.EMPTY_QUEUE) {
                     this.plotter.pause();
                     console.log("code: %d, pause PLOTTER...", code);
                     return;
