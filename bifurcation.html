@@ -23,24 +23,30 @@
     import {Plotter} from '/js/plotter.js';
 
 
-    // global scope object 
+    var num_tiles = 1000;
+
+
     var bifurcation = {
 
-      "x": 0, 
-      "r": 2.0,
-      "r_stop": 4.0,
-      "step": 0.0001,
-      "transformer": "tent",
-
-      "tent": function(x, r) {
-        return r * (1 - 2 * Math.abs(x - 0.5));
-      },
-      "quadratic": function(x, r) {
-        return r * x * (1-x);
+      "xc": 0, 
+      "rc": 2.0,
+      "rc_stop": 4.0,
+      "rc_step": 0.0001,
+      
+      "tent": function(xc, rc) {
+        return rc * (1 - 2 * Math.abs(xc - 0.5));
       },
 
+      "quadratic": function(xc, rc) {
+        return rc * xc * (1 - xc);
+      },
+
+      "sine": function (xc, rc) {
+        return Math.sin(Math.PI * xc) + rc; 
+      },
+      
       "stop": function() {
-        if(Complex.isBiggerFloat(this.r, this.r_stop)) {
+        if(Complex.isBiggerFloat(this.rc, this.rc_stop)) {
           return true;
         }
 
@@ -48,93 +54,105 @@
 
       },
 
-      "move": function() {
-        this.r = this.r + this.step;
-      },
+      "getOrbitPoints": function(size=1) {
 
-      "getPixels": function() {
+        let points = [];
+        let num_points = 0;
 
-        let pixels = [];
-        // start with a random point 
-        // let the orbit settle 
-        // add a dot on screen
+        // collect n=size orbit points 
+        while(num_points < size) {
 
-        let x = Math.random();
-        for(let n =0; n < 1000; n++) { 
-          x = this.transformer(x, this.r);
+          // start with a random point 
+          // and let the orbit settle
+          let xc = Math.random();
+
+          for(let n =0; n < 1000; n++) { 
+            xc = this.transformer(xc, this.rc);
+          }
+
+          // orbit point 
+          xc = this.transformer(xc, this.rc);
+          points.push({
+            "x": this.rc, 
+            "y": xc
+          });
+
+          num_points = num_points + 1;
+          this.rc = this.rc + this.rc_step;
+
+          if(this.stop()) {
+            return points; 
+          }
+
         }
 
-        for(let j = 0 ; j < 10; j++) {
-            x = this.transformer(x, this.r);
-            pixels.push({"x": this.r, "y": x});
-        }
-
-        return pixels;
+        return points;
 
       }
 
     }
    
    
+    function update_tile_handler(frameCount) {
 
+      // get num_tiles points
+      let points = bifurcation.getOrbitPoints(num_tiles);
+      // add tiles
+      for(let i =0; i < points.length; i++) {
 
-    function update_handler(frameCount) {
-
-     
-      // plot 500 orbit points 
-      // on every frame update 
-      for(let n =0; n < 500; n++) {
-
-        let pixels = bifurcation.getPixels();
-
-        for(let i =0; i < pixels.length; i = i + 1) {
-          this.plotter.add(['DOT', {
-            "x": pixels[i].x, 
-            "y": pixels[i].y
+          this.plotter.add(['TDOT', {
+            "x": points[i].x, 
+            "y": points[i].y
           }]);
-        }
-
-        bifurcation.move();
-        this.plotter.executeAll(); 
-        
-        if(bifurcation.stop()) {
-          this.pause();
-          console.log("@stop r -> %s", bifurcation.r);
-          break;
-        } 
 
       }
 
-    }
-    
-    
-    bifurcation.transformer = function(x, r) {
-      return Math.sin(Math.PI * x ) + r; 
+      try {
+        this.plotter.executeAll(); 
+      } catch(error) {
+        console.log("execution error: %d", error.code);
+      }
+      
+      if(bifurcation.stop()) {
+          this.pause();
+          console.log("@stop r -> %s", bifurcation.rc);
+      }
+
+      
     }
 
-    bifurcation.transformer = bifurcation.tent;
-    bifurcation.r = 0.5;
-    bifurcation.r_stop = 1.0;  
     
-    /*
-    bifurcation.transformer = "tent";
-    bifurcation.r = 0.5;
-    bifurcation.r_stop = 1.0;
-    bifurcation.step = 0.0001; */ 
+    // map transformers 
+    // tent x [0.5 - 1.0], y []
+    // quadratic x [2.0, 4.0], y[0, 1.0]
+    // sine 
+    // 
+    // setup bifurcation 
+    bifurcation.transformer = bifurcation.quadratic;
+    bifurcation.rc = 2.0;
+    bifurcation.rc_stop = 4.0;  
+    bifurcation.rc_step = 0.00001;
+    
+    // setup for rendering using tiles 
+    var plotter = new Plotter({
+      "overdraw": true,
+      "tiles": {
+        "size": 1, 
+        "total": num_tiles
+      }
+    });
 
-    var plotter = new Plotter({});
-    plotter.batchSize = 1000;
     plotter.debug = false; 
     plotter.setResolution(500, 500);
 
     // set X,Y range 
-    plotter.setXRange(bifurcation.r, bifurcation.r_stop); 
+    plotter.setXRange(bifurcation.rc, bifurcation.rc_stop); 
     plotter.setYRange(0, 1.0);
-    plotter.showBox();
+    plotter.showBox();  
     
     
     // play animation
-    plotter.bind_animation_handler(update_handler);
+    plotter.bind_animation_handler(update_tile_handler);
     plotter.play();
     
     
