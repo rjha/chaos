@@ -8,10 +8,15 @@
     <title> mandlebrot demo </title>
       <style>
         
-        #particles {
-          width:400px; 
-          height:400px;
-        } 
+        #art {
+          width:500px; 
+          height:500px;
+        }
+
+        #canvas1 {
+          width:500px; 
+          height:500px;
+        }
 
       </style>
 
@@ -19,7 +24,10 @@
 
   <body>
     
-    <canvas id="particles"></canvas>
+
+    <div id="art">
+      <canvas id="canvas1"> </canvas>
+    </div>
 
     <script type="module">
 
@@ -51,8 +59,6 @@
           console.log("stop rendering...");
           this.pause();
         }
-
-        
         
       }
 
@@ -83,11 +89,24 @@
 
       }
 
-
+        // 
+        // 1. fullscreen will override width & height 
+        // we must set it to false to set custom 
+        // width and height
+        // 
+        // 2. for pixel art, 
+        //  use smoothing: false 
+        //  overdraw:true 
+        //   
+      
      
       plotter = new Plotter({
-
+       
+          "fullscreen": false,
           "overdraw": true,
+          "container": document.getElementById("art"),
+          "domElement": document.getElementById("canvas1"),
+          
           "tiles": {
             "size": 1,
             "total": pixels
@@ -105,6 +124,8 @@
       // default animation handler 
       plotter.bind_animation_handler(update_tile_handler);
 
+      // console.log(plotter.resolution);
+      
       var mandlebrot = new Mandlebrot();
       mandlebrot.setColorIndex([40, 60, 90, 110, 150, 200, 300]);
       mandlebrot.setTransformer(transformer);
