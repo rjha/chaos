@@ -1,0 +1,51 @@
+
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+    
+    <script type="module">
+
+        import Two from '/js/two.module.js'
+        var  two = new Two({
+            type: Two.Types.canvas,
+            overdraw: true,
+            }).appendTo(document.body);
+
+        var shape = two.makeRectangle(10, 10, 1, 1);
+        shape.opacity = 1.0;
+
+        var colors = ["red", "blue", "green", "black", "purple"];
+        var numEvents = 0;
+        
+
+        two.bind('update', function() {
+
+            let x = Math.random() * two.width;
+            let y = Math.random() * two.height;
+            let color_index = Math.floor(Math.random() * (colors.length -1));
+
+            shape.position.x = x;
+            shape.position.y = y;
+            shape.fill = colors[color_index];
+            shape.noStroke();
+
+            numEvents = numEvents + 1;
+            
+            if(numEvents >= 25000) {
+                console.log("pause...");
+                two.pause();
+            }
+
+        }); 
+
+        two.play();
+
+    </script>
+  </body>
+</html>
