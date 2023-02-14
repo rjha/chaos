@@ -9,13 +9,13 @@
       <style>
         
         #art {
-          width:500px; 
-          height:500px;
+          width:600px; 
+          height:600px;
         }
 
         #canvas1 {
-          width:500px; 
-          height:500px;
+          width:610px; 
+          height:610px;
         }
 
       </style>
@@ -36,58 +36,44 @@
       
       import { Complex, MutableComplex } from '/js/complex.js';
       import { Plotter } from '/js/plotter.js';
-      import { Mandlebrot } from '/js/mandlebrot.js';
+      import { ComplexGrid, Julia } from '/js/mandlebrot.js';
 
       
-      const pixels = 600;      
-      var plotter;
-      var mandlebrot;
-      var xp = 0;
+      const pixels = 500;      
+      
 
       function update_tile_handler(frameCount) {
 
-        // add the tiles for xp value  
-        // execute the tiles command
-        this.plotter.mandlebrot.render(xp);
-        this.plotter.executeAll();
+        // frame update 
+        // will draw a vertical line for current x 
+        // and advance x to x +1 
+        let points = this.plotter.grid.getVerticalPoints();
 
-        // set for next frame 
-        xp = xp + 1;
+        // add tiles
+        for(let i =0; i < points.length; i++) {
+            this.plotter.add(['TDOT', {
+              "x": points[i].x,
+              "y": points[i].y,
+              "color": points[i].color
+            }]);
+        }
+        
 
-        // stop 
-        if(xp > pixels) {
+        try {
+          this.plotter.executeAll();
+        } catch(error) {
+          console.log("execution error: %d", error.code);
+        }
+
+        // check stop condition
+        if(this.plotter.grid.stop()) {
           console.log("stop rendering...");
           this.pause();
         }
         
       }
 
-
-       // point transformer 
-      function transformer(z0) {
-
-        let z = new MutableComplex(z0.x, z0.y);
-        let n = 0;
-
-        while(n < 1000) {
-          
-          z.power(2);
-          z.add(mandlebrot.cz);
-          
-          if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
-            break;
-          }
-
-          n = n + 1;
-
-        }
-
-        return {
-          "n": n, 
-          "magnitude": Complex.magnitude(z)
-        }
-
-      }
+      
 
         // 
         // 1. fullscreen will override width & height 
@@ -100,7 +86,7 @@
         //   
       
      
-      plotter = new Plotter({
+      var plotter = new Plotter({
        
           "fullscreen": false,
           "overdraw": true,
@@ -111,9 +97,12 @@
             "size": 1,
             "total": pixels
           },
+
           "width": pixels, 
           "height": pixels
+
       });
+
 
       plotter.debug = false;
       plotter.setXRange(-1.5, 1.5);
@@ -124,16 +113,19 @@
       // default animation handler 
       plotter.bind_animation_handler(update_tile_handler);
 
-      // console.log(plotter.resolution);
-      
-      var mandlebrot = new Mandlebrot();
-      mandlebrot.setColorIndex([40, 60, 90, 110, 150, 200, 300]);
-      mandlebrot.setTransformer(transformer);
-      mandlebrot.cz = new Complex(-0.1, 0.65);
 
+      var grid = new ComplexGrid({
+        "pixels": pixels
+      });
+
+      grid.colorIndex = [40, 60, 90, 110, 150, 200, 300];
+      grid.transformer = new Julia({
+        "fixedParameter": Julia.Parameters.FLOATERS
+      });
+      
       // bind references 
-      mandlebrot.plotter = plotter; 
-      plotter.mandlebrot = mandlebrot;
+      grid.plotter = plotter; 
+      plotter.grid = grid;
 
       // play 
       plotter.play();
