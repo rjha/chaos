@@ -49,16 +49,16 @@ class Julia {
                 // map the pixel into a 
                 // x,y number in the complex plane 
                 let z = this.plotter.mapXY(xp, yp);
-                let result = this.#transform(z);
+                let orbit = this.#transform(z);
                 
                 this.pixels.push({
                     "x": z.x,
                     "y": z.y,
-                    "shade": result.n 
+                    "shade": orbit.n 
                 });
 
                 // one more point for this shade
-                this.shades[result.n] = this.shades[result.n] + 1; 
+                this.shades[orbit.n] = this.shades[orbit.n] + 1; 
             
          }
 
