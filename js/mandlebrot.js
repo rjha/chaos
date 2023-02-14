@@ -1,12 +1,73 @@
 
 
+import { Complex, MutableComplex } from '/js/complex.js';
 
 const MAX_ITER = 1000;
 
+const JULIA_FIXED_PARAMETERS = {
 
-class Mandlebrot {
+  EYES: new Complex(-0.1, 0.65),
+  PEACOCK_FEATHER: new Complex(0.355534, -0.337292),
+  DENDRITE: new Complex(-0.835, -0.2321),
+  HIGHWAY_FRACTAL: new Complex(-0.54, 0.54), 
+  FLOATERS: new Complex(0.285, 0.01),
+  EMBROIDERY: new Complex(-0.04, -0.684),
+  MONKEY_TOY: new Complex(0.285, 0.535)
 
-  
+}
+
+
+class Julia {
+
+  #cz;
+  constructor(args={}) {
+
+
+    // default options
+    const defaults = {
+      "fixedParameter": new Complex(-0.1, 0.65)
+    }
+
+    // find the fixed parameter 
+    const options = Object.assign(defaults, args);
+    this.#cz = options.fixedParameter;
+
+  }
+
+  static get Parameters() {
+    return JULIA_FIXED_PARAMETERS;
+  }
+
+  transform(z0) {
+
+    let z = new MutableComplex(z0.x, z0.y);
+    let n = 0;
+
+    while(n < 1000) {
+      
+      z.power(2);
+      z.add(this.#cz);
+      
+      if(Complex.isBiggerFloat(Complex.magnitude(z), 2.0)) {
+        break;
+      }
+
+      n = n + 1;
+
+    }
+
+    return {
+      "n": n, 
+      "magnitude": Complex.magnitude(z)
+    }
+  }
+
+}
+
+
+class ComplexGrid {
+
+
     #transformer; 
     #attractor_color = "red";
     #colors = [];
@@ -16,6 +77,8 @@ class Mandlebrot {
     #yp = 0;
     #total = 0;
 
+    // 4 eyes 
+    // #cz = new Complex(-0.1, 0.65);
 
     constructor(args={}) {
 
@@ -52,9 +115,10 @@ class Mandlebrot {
       this.#colorsIndex = colorsIndex;
     }
     
-    set transformer(transformer_func) {
-      this.#transformer = transformer_func;
+    set transformer(transformer) {
+      this.#transformer = transformer;
     }
+
 
     stop() {
 
@@ -77,7 +141,7 @@ class Mandlebrot {
         // map the pixel into a number 
         // in complex plane 
         let z = this.plotter.mapXY(this.#xp, yp);
-        let orbit = this.#transformer(z);
+        let orbit = this.#transformer.transform(z);
         let color = this.getColor(orbit.n);
 
         points.push({
@@ -189,5 +253,5 @@ class Mandlebrot {
   }
 
 
-export {Mandlebrot};
-export default Mandlebrot;
+export {ComplexGrid, Julia};
+export default ComplexGrid;
