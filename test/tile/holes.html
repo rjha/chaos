@@ -1,0 +1,73 @@
+
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+    
+    <script type="module">
+
+      // example showing the problems with 
+      // using default animation handler 
+      // with tiling 
+      
+      import {Plotter} from '/js/plotter.js';
+
+      
+      var pixels = 100;
+      var distance = 10;
+      
+      // batchsize <= num_tiles is Ok
+      // however batchSize > num_tiles will 
+      // produce holes. 
+      var num_tiles = 2;
+      var batch_size = 3;
+
+      
+    
+      var plotter = new Plotter({
+          "fullscreen": false, 
+          "overdraw": true,
+          "tiles": {
+            "size": Math.floor(pixels / distance), 
+            "total": num_tiles
+          }
+      });
+
+      plotter.setXRange(0, distance);
+      plotter.setYRange(0, distance);
+      plotter.setResolution(pixels, pixels);
+      plotter.batchSize = batch_size;
+      plotter.debug = true ;
+
+      // default animation handler 
+      // This is to illustrate that tiling 
+      // should supply its own animation handler 
+      // as the batch size > num_tiles will skip 
+      // pixels 
+      // 
+      plotter.bind_animation_handler(plotter.update_handler);
+
+      // this is in complex z-plane 
+      for(let yp =0; yp < distance; yp++) {
+        for(let xp = 0; xp < distance; xp++) {
+          plotter.add(['TDOT', {
+            "x": xp, 
+            "y": yp
+          }]);
+
+        }
+
+      }
+        
+
+      plotter.play();
+
+
+    </script>
+  </body>
+</html>
