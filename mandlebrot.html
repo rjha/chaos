@@ -9,14 +9,14 @@
       <style>
         
         #art {
-          width:600px; 
-          height:600px;
+          width:500px; 
+          height:500px;
         }
 
         #canvas1 {
-          width:610px; 
-          height:610px;
-        }
+          width:510px; 
+          height:510px;
+        } 
 
       </style>
 
@@ -29,6 +29,58 @@
       <canvas id="canvas1"> </canvas>
     </div>
 
+    <br>
+    <button onclick="DownloadCanvasAsImage()">Download</button>
+
+    <script>
+
+      function DownloadCanvasAsImage(){
+
+        const monthNames = ["Jan", 
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "June",
+          "July",
+          "Aug",
+          "Sept",
+          "Oct",
+          "Nov",
+          "Dec"];
+
+          const date = new Date();
+          const [month, day, year] = [
+            date.getMonth(),
+            date.getDate(),
+            date.getFullYear(),
+          ];
+
+          const [hour, minutes, seconds] = [
+            date.getHours(),
+            date.getMinutes(),
+            date.getSeconds(),
+          ];
+
+          let monthName = monthNames[month];
+          const fileName = `mandlebrot-${day}${monthName}_${hour}${minutes}` ;
+        
+
+          let downloadLink = document.createElement('a');
+          downloadLink.setAttribute('download', fileName);
+          let canvas = document.getElementById('canvas1');
+
+          canvas.toBlob(function(blob) {
+            let url = URL.createObjectURL(blob);
+            downloadLink.setAttribute('href', url);
+            downloadLink.click();
+
+          });
+
+      }
+
+    </script>
+
     <script type="module">
 
       // Mandlebrot set rendering 
@@ -39,7 +91,7 @@
       import { ComplexGrid, Julia } from '/js/mandlebrot.js';
 
       
-      const pixels = 500;      
+      const pixels = 1200;      
       
 
       function update_tile_handler(frameCount) {
@@ -118,17 +170,21 @@
         "pixels": pixels
       });
 
-      grid.colorIndex = [40, 60, 90, 110, 150, 200, 300];
-      grid.transformer = new Julia({
-        "fixedParameter": Julia.Parameters.FLOATERS
-      });
       
+      grid.transformer = new Julia({
+        "fixedParameter": Julia.Parameters["EMBROIDERY"]
+      });
+
+      grid.colors = ["black", "white"];
+      grid.colorsIndex = [70];
+
       // bind references 
       grid.plotter = plotter; 
       plotter.grid = grid;
 
       // play 
       plotter.play();
+      // console.log(Object.keys(Julia.Parameters));
 
     </script>
 
