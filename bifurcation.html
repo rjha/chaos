@@ -4,10 +4,31 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        
+      #art {
+        width:500px; 
+        height:500px;
+      }
+
+      #canvas1 {
+        width:510px; 
+        height:510px;
+      } 
+
+    </style>
+
   </head>
 
   <body>
-
+    <div id="art">
+      <canvas id="canvas1"> </canvas>
+    </div>
+    <div>
+      <label> RC &nbsp;</label>
+      <span id="counter"> </span>
+    </div>
     <script type="module">
 
     // @see https://hypertextbook.com/chaos/bifurcation/
@@ -17,87 +38,22 @@
     // for tent map 
     // @see https://hypertextbook.com/chaos/universality/
     // 
-    // 
     
     import {Complex} from '/js/complex.js';
     import {Plotter} from '/js/plotter.js';
+    import {Bifurcation} from '/js/bifurcation.js';
 
+    
+    // number of tiles for painting 
+    // the canvas 
+    const num_tiles = 50;
+    const pixels = 500;
+    
 
-    var num_tiles = 1000;
-
-
-    var bifurcation = {
-
-      "xc": 0, 
-      "rc": 2.0,
-      "rc_stop": 4.0,
-      "rc_step": 0.0001,
-      
-      "tent": function(xc, rc) {
-        return rc * (1 - 2 * Math.abs(xc - 0.5));
-      },
-
-      "quadratic": function(xc, rc) {
-        return rc * xc * (1 - xc);
-      },
-
-      "sine": function (xc, rc) {
-        return Math.sin(Math.PI * xc) + rc; 
-      },
-      
-      "stop": function() {
-        if(Complex.isBiggerFloat(this.rc, this.rc_stop)) {
-          return true;
-        }
-
-        return false;
-
-      },
-
-      "getOrbitPoints": function(size=1) {
-
-        let points = [];
-        let num_points = 0;
-
-        // collect n=size orbit points 
-        while(num_points < size) {
-
-          // start with a random point 
-          // and let the orbit settle
-          let xc = Math.random();
-
-          for(let n =0; n < 1000; n++) { 
-            xc = this.transformer(xc, this.rc);
-          }
-
-          // orbit point 
-          xc = this.transformer(xc, this.rc);
-          points.push({
-            "x": this.rc, 
-            "y": xc
-          });
-
-          num_points = num_points + 1;
-          this.rc = this.rc + this.rc_step;
-
-          if(this.stop()) {
-            return points; 
-          }
-
-        }
-
-        return points;
-
-      }
-
-    }
-   
-   
+    // animation handler 
     function update_tile_handler(frameCount) {
 
-      // get num_tiles points
-      let points = bifurcation.getOrbitPoints(num_tiles);
-      // add tiles
+      let points = this.plotter.bifurcation.getOrbitPoints(num_tiles);
       for(let i =0; i < points.length; i++) {
 
           this.plotter.add(['TDOT', {
@@ -108,7 +64,11 @@
       }
 
       try {
+
         this.plotter.executeAll(); 
+        // update counter 
+        document.getElementById("counter").innerText = this.plotter.bifurcation.rc; 
+        
       } catch(error) {
         console.log("execution error: %d", error.code);
       }
@@ -122,35 +82,32 @@
     }
 
     
-    // map transformers 
-    // tent x [0.5 - 1.0], y []
-    // quadratic x [2.0, 4.0], y[0, 1.0]
-    // sine 
-    // 
-    // setup bifurcation 
+    var bifurcation = new Bifurcation();
     bifurcation.transformer = bifurcation.quadratic;
-    bifurcation.rc = 2.0;
-    bifurcation.rc_stop = 4.0;  
     bifurcation.rc_step = 0.00001;
     
-    // setup for rendering using tiles 
     var plotter = new Plotter({
+      "fullscreen": false, 
       "overdraw": true,
       "tiles": {
         "size": 1, 
         "total": num_tiles
-      }
+      },
+      "container": document.getElementById("art"),
+      "domElement": document.getElementById("canvas1")
+         
     });
 
     plotter.debug = false; 
-    plotter.setResolution(500, 500);
+    plotter.setResolution(pixels, pixels);
 
     // set X,Y range 
     plotter.setXRange(bifurcation.rc, bifurcation.rc_stop); 
     plotter.setYRange(0, 1.0);
     plotter.showBox();  
     
-    
+    // bind references 
+    plotter.bifurcation = bifurcation; 
     // play animation
     plotter.bind_animation_handler(update_tile_handler);
     plotter.play();
