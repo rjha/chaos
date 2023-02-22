@@ -6,19 +6,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title> mandlebrot demo </title>
+
+   
       <style>
         
         #art {
-          width:500px; 
-          height:500px;
+          width:520px; 
+          height:520px;
         }
-
-        #canvas1 {
-          width:510px; 
-          height:510px;
-        } 
-
-      </style>
+        
+      </style> 
 
   </head>
 
@@ -91,7 +88,11 @@
       import { ComplexGrid, Julia } from '/js/mandlebrot.js';
 
       
-      const pixels = 1200;      
+      const pixels = 2400;   
+      const DisplayRegion = {
+        "width": 500,
+        "height": 500
+      }   
       
 
       function update_tile_handler(frameCount) {
@@ -161,6 +162,8 @@
       plotter.setYRange(-1.5, 1.5);
       plotter.setResolution(pixels, pixels);
 
+
+     
       // bind animation event 
       // default animation handler 
       plotter.bind_animation_handler(update_tile_handler);
@@ -184,8 +187,11 @@
 
       // play 
       plotter.play();
-      // console.log(Object.keys(Julia.Parameters));
-
+      
+      // fix display region using css 
+      plotter.two.renderer.domElement.style.width = DisplayRegion.width + "px";
+      plotter.two.renderer.domElement.style.height = DisplayRegion.height + "px";
+      
     </script>
 
 
