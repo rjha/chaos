@@ -1,0 +1,79 @@
+
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+    
+    <div id="art"> 
+        <canvas id="canvas1"> </canvas>
+      </div>
+
+    <script type="module">
+
+        // Huge canvas demo 
+        // we render a huge circle that goes 
+        // outside the browser screen but we display 
+        // it inside a smaller region by setting domElement css
+        
+        import Two from '/js/two.module.js';
+
+        const pixels = 3200;
+        const DISPLAY_REGION = {
+          "height": 400,
+          "width": 400
+        }
+
+        // if canvas height OR width is less than 
+        // pixels then we can only render partial 
+        // scene. set width, height to 800 to see 
+        // a rectangle instead of a circle 
+        // 
+        const canvas_width = 3200;
+        const canvas_height = 3200;
+
+        const container =  document.getElementById("art");
+        const canvasElement = document.getElementById("canvas1");
+        
+        var  two = new Two({
+            type: Two.Types.canvas,
+            overdraw: true,
+            domElement: canvasElement,
+            width: canvas_width, 
+            height: canvas_height 
+        }).appendTo(container);
+
+        // make a big circle
+        var radius = Math.floor(pixels * 0.5);
+        var x = two.width * 0.5;
+        var y = two.height * 0.5;
+        var circle = two.makeCircle(x, y, radius);
+        // pen stroke
+        circle.stroke = 'black';
+        circle.linewidth = 10;
+        // fill 
+        var color_index = 0;
+        var colors = ["red", "orange"];
+
+        function animation_update(frameCount) {
+            if(frameCount % 131 == 0) {
+                circle.fill = colors[color_index++ % 2];
+            }
+        }
+
+        two.bind('update', animation_update);
+        two.play();
+
+        // set css to bring it inside region
+        two.renderer.domElement.style.width = DISPLAY_REGION.width + "px";
+        two.renderer.domElement.style.height = DISPLAY_REGION.height + "px";
+        console.log("css width -> " + two.renderer.domElement.style.width);
+
+    </script>
+  </body>
+</html>
+
