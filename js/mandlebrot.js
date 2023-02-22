@@ -2,7 +2,21 @@
 
 import { Complex, MutableComplex } from '/js/complex.js';
 
+
+/* 
+ 
+ suggested color indexes for some Julia patterns 
+ 
+ - highway fractal - [100, 150, 300, 900]
+ - Floaters - [50, 80, 120, 400]
+ - Embroidery - [30, 60, 280, 900]
+ - Eyes - [200, 300, 500]
+
+ */
+
+ 
 const MAX_ITER = 1000;
+
 
 const JULIA_FIXED_PARAMETERS = {
 
@@ -30,6 +44,8 @@ class Julia {
 
     // find the fixed parameter 
     const options = Object.assign(defaults, args);
+    Object.freeze(options);
+    
     this.#cz = options.fixedParameter;
 
   }
@@ -77,8 +93,6 @@ class ComplexGrid {
     #yp = 0;
     #total = 0;
 
-    // 4 eyes 
-    // #cz = new Complex(-0.1, 0.65);
 
     constructor(args={}) {
 
