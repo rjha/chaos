@@ -1,0 +1,59 @@
+
+https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
+
+
+// Set display size (css pixels).
+// Display Region 
+const size = 200;
+canvas.style.width = `${size}px`;
+canvas.style.height = `${size}px`;
+
+// set canvas width and height 
+// Change to 1 on retina screens to see blurry canvas.
+const scale = window.devicePixelRatio; 
+canvas.width = Math.floor(size * scale);
+canvas.height = Math.floor(size * scale);
+
+// Normalize coordinate system to use CSS pixels.
+// we can draw till css pixels only! 
+ctx.scale(scale, scale);
+
+
+(1)
+By default, one unit on the canvas (css pixel) is exactly one (device) pixel. 
+A scaling transformation modifies this behavior. For instance, a scaling factor 
+of 0.5 results in a unit size of 0.5 pixels; shapes are thus drawn at half 
+the normal size. Similarly, a scaling factor of 2.0 increases the unit size 
+so that one unit becomes two pixels; shapes are thus drawn at twice the 
+normal size.
+
+
+suppose, we do, 
+
+ctx.scale(9, 3);
+the position of a point on the canvas also changes. suppose, earlier the point 
+was at (10, 10). it will now be rendered at (90, 30).
+
+ctx.fillRect(10, 10, 8, 20);
+The final size of the rectangle would be a width of 72 and a height of 60.
+Now we are using 9 pixels for drawing one unit in x direction. 
+
+(2) Why did we scale? 
+
+We scaled because Window.devicePixelRatio determines the 
+size of one CSS unit to the number of device pixels.
+
+(3) Why change the width and height of the canvas? 
+The HTMLCanvasElement.width property is a positive integer reflecting the 
+width HTML attribute of the <canvas> element interpreted in CSS pixels. 
+
+(4) Browser renders using the device pixels 
+
+[canvas.width x canvas.height] is the total number of css pixels 
+The results look pixelated on hidpi screens because you have less pixels 
+than you ought to have. So you need to increase the css pixels. 
+
+
+
+
+
